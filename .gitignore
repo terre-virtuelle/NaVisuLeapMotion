@@ -1,0 +1,38 @@
+# Compiled source #
+###################
+*.class
+
+# Android #
+###########
+# Built application files
+*.apk
+*.ap_
+
+# Files for the ART/Dalvik VM #
+###############################
+*.dex
+
+# Intellij #
+############
+*.iml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/libraries
+.idea/
+
+#Ignore .gradle #
+#################
+.gradle/
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+#Ignore build directory #
+#########################
+/NaVisuLeapMotion/build/
+/NaVisuLeapMotion/.nb-gradle/
+/build/
+/.nb-gradle/
