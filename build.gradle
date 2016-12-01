@@ -7,7 +7,13 @@ buildscript {
     }
 }
 
+ext{
+    ANDROID_HOME = 'C:/Users/Nico/AppData/Local/Android/sdk'
+}
+
 apply plugin: 'org.javafxports.jfxmobile'
+apply plugin: 'idea'
+idea.module.downloadJavadoc = true
 
 repositories {
     jcenter()
@@ -20,6 +26,9 @@ mainClassName = 'bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion'
 
 dependencies {
     compile 'com.gluonhq:charm:4.1.0'
+    compile files('libs/java_websocket.jar')
+    compile group: 'org.glassfish.tyrus.bundles', name: 'tyrus-standalone-client', version: '1.9'
+    //compile group: 'javax.websocket', name: 'javax.websocket-api', version: '1.1'
 }
 
 jfxmobile {
@@ -28,6 +37,7 @@ jfxmobile {
         plugins 'display', 'lifecycle', 'statusbar', 'storage'
     }
     android {
+        compileSdkVersion = '24'
         manifest = 'src/android/AndroidManifest.xml'
     }
 }

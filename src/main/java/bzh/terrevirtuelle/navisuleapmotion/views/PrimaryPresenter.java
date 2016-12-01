@@ -22,8 +22,13 @@ import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion;
+import static bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion.SECONDARY_VIEW;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 
 /**
  *
@@ -36,6 +41,9 @@ public class PrimaryPresenter {
 
     @FXML
     private Label label;
+    
+    @FXML
+    private ProgressIndicator loading;
 
     public void initialize() {
         primary.showingProperty().addListener((obs, oldValue, newValue) -> {
@@ -51,8 +59,9 @@ public class PrimaryPresenter {
     }
     
     @FXML
-    void buttonClick() {
-        label.setText("Hello JavaFX Universe!");
+    void buttonClick(ActionEvent e) {
+        //Possibly try to display a loading icon or something while trying to connect to NaVisu
+        MobileApplication.getInstance().switchView(SECONDARY_VIEW);
     }
     
 }
