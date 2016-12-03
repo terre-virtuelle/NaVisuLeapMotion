@@ -19,6 +19,7 @@ package bzh.terrevirtuelle.navisuleapmotion.util;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.channels.NotYetConnectedException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -34,31 +35,40 @@ import org.java_websocket.handshake.ServerHandshake;
  * @author Di Falco Nicola
  */
 public class WSClient extends WebSocketClient{
-    private List<String> listID_Rep = new LinkedList<String>();
+    
+    private final String ROUTE = "Route0.nds";
+    private ParserXML customParser;
+    private List<ARgeoData> static_ARgeoDataArray;
+
+    public List<ARgeoData> getStatic_ARgeoDataArray() {
+        return static_ARgeoDataArray;
+    }
+    
+    private List<String> listID_Rep = new LinkedList<>();
 
     public WSClient( URI serverUri , Draft draft ) {
         super( serverUri, draft );
     }
-
+    
     public WSClient( URI serverURI ) {
         super( serverURI );
     }
 
     @Override
     public void onOpen( ServerHandshake handshakedata ) {
-        System.out.println("opened connection");
+        System.out.println("Connection Opened");
         // if you plan to refuse connection based on ip or httpfields overload: onWebsocketHandshakeReceivedAsClient
     }
 
     @Override
     public void onMessage( String message ) {
-        System.out.println( "received: " + message );
+        System.out.println( "Received from Navisu: " + message );
         listID_Rep.add(message);
     }
 
   //  @Override
     public void onFragment( Framedata fragment ) {
-        System.out.println( "received fragment: " + new String( fragment.getPayloadData().array() ) );
+        System.out.println( "Received fragment: " + new String( fragment.getPayloadData().array() ) );
     }
 
     @Override
@@ -72,11 +82,13 @@ public class WSClient extends WebSocketClient{
         ex.printStackTrace();
         // if the error is fatal then onClose will be called additionally
     }
-
-    public static void main( String[] args ) throws URISyntaxException {
-        System.out.println("*********** Connecting *************");
-        WSClient c = new WSClient( new URI( "ws://localhost:8787" )); // more about drafts here: http://github.com/TooTallNate/Java-WebSocket/wiki/Drafts
-        c.connect();
+    
+    public void ws_request() throws NotYetConnectedException{
+        String cmd = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><arCommand><cmd>NaVigationDataSetCmd</cmd><arg>%s</arg></arCommand>", ROUTE);
+        System.out.println("Sending: " + cmd);
+        this.send(cmd);
+        static_ARgeoDataArray = handleRepStaticData();
+        //new WebSock(cmd).execute();
     }
 
     public List<String> getListID_Rep() {
@@ -85,5 +97,61 @@ public class WSClient extends WebSocketClient{
 
     public void setListID_Rep(List<String> listID_Rep) {
         this.listID_Rep = listID_Rep;
+    }
+    
+    private List<ARgeoData> handleRepStaticData() {
+        Logger.getLogger("WSClient").log(Level.INFO, "handleRepStaticData");
+        String message = "";
+        List<String> messageList = this.getListID_Rep();
+        boolean done = false;
+        while (!done) {
+            if (messageList.size() > 0 && messageList.get(0) != null) {
+                message = messageList.get(messageList.size() - 1);
+                done = true;
+            } else { 
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(WSClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+            
+        System.out.println("Received: " + message);
+
+        return response(message);
+    }
+    
+    private List<ARgeoData> response(String resp) {
+        String ans = "";
+        Logger.getAnonymousLogger().log(Level.WARNING, resp);
+        List<ARgeoData> argeoDatasList;
+        if (resp != null) {
+            customParser = new ParserXML(resp);
+            customParser.process();
+            argeoDatasList = customParser.getARgeoDatas();
+            return argeoDatasList;
+        }
+        return null;
+    }
+    
+    public static WSClient getInstance() {
+        WSClient wsc = null;
+        try {
+            wsc = new WSClient( new URI( "ws://localhost:8787/navigation" ), new Draft_10() );
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(WSClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return wsc;
+    }
+    
+    public static WSClient getInstance(String ip) {
+        WSClient wsc = null;
+        try {
+            wsc = new WSClient( new URI( "ws://" + ip + ":8787/navigation" ), new Draft_10() );
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(WSClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return wsc;
     }
 }
