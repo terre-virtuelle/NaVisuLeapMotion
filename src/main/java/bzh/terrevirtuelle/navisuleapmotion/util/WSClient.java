@@ -17,8 +17,10 @@
  */
 package bzh.terrevirtuelle.navisuleapmotion.util;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
 import java.util.LinkedList;
 import java.util.List;
@@ -81,6 +83,14 @@ public class WSClient extends WebSocketClient{
     public void onError( Exception ex ) {
         ex.printStackTrace();
         // if the error is fatal then onClose will be called additionally
+    }
+    
+    public void sendIP() throws NotYetConnectedException, UnknownHostException{
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        String cmd = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><arCommand><cmd>IPInfo</cmd><arg>%s</arg></arCommand>", ip);
+        System.out.println("Sending: " + cmd);
+        this.send(cmd);
+        //new WebSock(cmd).execute();
     }
     
     public void ws_request() throws NotYetConnectedException{

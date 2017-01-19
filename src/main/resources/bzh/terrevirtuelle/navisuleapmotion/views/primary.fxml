@@ -51,7 +51,9 @@
                   <TextField fx:id="ip" prefHeight="25.0" prefWidth="234.0" />
                </children>
             </HBox>
-            <Button fx:id="route0" disable="true" mnemonicParsing="false" text="Route 0" onAction="#buttonRoute0" />
+            <Button fx:id="route0" disable="true" mnemonicParsing="false" onAction="#buttonRoute0" text="Route 0" />
+            <Label fx:id="serverText" />
+            <Label fx:id="data" />
          </children>
       </VBox>
    </center>

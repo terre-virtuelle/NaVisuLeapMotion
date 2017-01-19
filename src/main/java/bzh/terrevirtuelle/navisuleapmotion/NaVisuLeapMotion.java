@@ -17,22 +17,15 @@
  */
 package bzh.terrevirtuelle.navisuleapmotion;
 
-import static bzh.terrevirtuelle.navisuleapmotion.util.Main.wsc;
 import bzh.terrevirtuelle.navisuleapmotion.util.WSClient;
 import bzh.terrevirtuelle.navisuleapmotion.views.PrimaryView;
 import bzh.terrevirtuelle.navisuleapmotion.views.SecondaryView;
 import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.layout.layer.SidePopupView;
 import com.gluonhq.charm.glisten.visual.Swatch;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import org.java_websocket.drafts.Draft_10;
 
 /**
  *

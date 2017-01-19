@@ -22,16 +22,15 @@ import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion;
-import static bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion.PRIMARY_VIEW;
-import static bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion.SECONDARY_VIEW;
 import static bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion.WSC;
+import bzh.terrevirtuelle.navisuleapmotion.server.Server;
 import bzh.terrevirtuelle.navisuleapmotion.util.ARgeoData;
-import static bzh.terrevirtuelle.navisuleapmotion.util.Main.wsc;
 import bzh.terrevirtuelle.navisuleapmotion.util.Toast;
 import bzh.terrevirtuelle.navisuleapmotion.util.WSClient;
-import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -42,7 +41,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
@@ -82,9 +80,18 @@ public class PrimaryPresenter {
     private Button button;
     
     @FXML
+    private Label serverText;
+    
+    @FXML
+    private Label data;
+    
+    @FXML
     private Button route0;
 
-
+    int port = 8899;
+    boolean first = true;
+    private Server server;
+    
     public void initialize() {
         primary.showingProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue) {
@@ -97,9 +104,15 @@ public class PrimaryPresenter {
             }
         });
     }
-    
+
     @FXML
     void buttonClick(ActionEvent e) {
+         if (first == true) {
+            first = false;
+            server = new Server(port, this);
+            serverText.setText("The  server is started.");
+        }
+         
         Pattern pattern = Pattern.compile(IPADDRESS_PATTERN);
         
         if(WSC != null)
@@ -130,6 +143,20 @@ public class PrimaryPresenter {
                 Logger.getLogger(PrimaryPresenter.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        
+        try {
+            WSC.sendIP();
+            this.data.setText(InetAddress.getLocalHost().getHostAddress());
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(PrimaryPresenter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        /**
+         * Recherches pour changer le texte en fonction de celui de la réponse.
+         * Plus tard, on devra afficher les images
+         */
+//        String data = Server.getStatic_Data().get(0);
+//        this.data.setText(data);
         
         route0.setDisable(false);
         datagrid.setVisible(true);
