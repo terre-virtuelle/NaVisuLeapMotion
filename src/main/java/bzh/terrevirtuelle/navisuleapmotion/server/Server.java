@@ -24,10 +24,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 
 /**
  *
@@ -43,34 +42,55 @@ public class Server {
     
     private final int port;
     private final PrimaryPresenter primaryPresenter;
-    private static List<String> static_Data = new LinkedList<>();
-    
-    public static List<String> getStatic_Data(){
-        return static_Data;
-    }
+    private SocketServerThread sst;
 
     public Server(int port, PrimaryPresenter primaryPresenter) {
         this.port = port;
         this.primaryPresenter = primaryPresenter;
         System.out.println("Starting Server");
-        new SocketServerThread().start();
+        sst = new SocketServerThread();
+        sst.start();
     }
+    
+    public void StopServer(){
+        if(sst != null && sst.isAlive())
+            sst.terminate();
+    }
+    
+    protected void displayMessage(String msg){
+        this.primaryPresenter.displayMessage(msg);
+    }
+    
+    protected void displayImage(String msg){
+        this.primaryPresenter.displayImage(msg);
+    }
+    
 
     private class SocketServerThread extends Thread {
 
+        private boolean isRunning = true;
+        private HandlerServer hs;
+        
         @Override
         public void run() {
             try {
                 int clientNumber = 0;
                 ServerSocket listener = new ServerSocket(port);
+                        
                 {
-                    while (true) {
-                        new HandlerServer(listener.accept(), clientNumber++).start();
+                    while (isRunning) {
+                        hs = new HandlerServer(listener.accept(), clientNumber++);
+                        hs.start();
                     }
                 }
             } catch (IOException ex) {
                 Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+        
+        public void terminate(){
+            hs.terminate();
+            isRunning = false;
         }
     }
 
@@ -79,10 +99,13 @@ public class Server {
      * socket. The client terminates the dialogue by sending a single line
      * containing only a period.
      */
-    private static class HandlerServer extends Thread {
+    private class HandlerServer extends Thread {
 
-        private final Socket socket;
+        private Socket socket;
         private final int clientNumber;
+        private boolean isRunning = true;
+        private BufferedReader in;
+        private PrintWriter out;
 
         public HandlerServer(Socket socket, int clientNumber) {
             this.socket = socket;
@@ -98,23 +121,24 @@ public class Server {
         @Override
         public void run() {
             try {
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                out = new PrintWriter(socket.getOutputStream(), true);
 
                 Logger.getLogger(Server.class.getName()).log(Level.INFO, "Client connected: "+clientNumber);
                 
                 // Get messages from the client, line by line; return them
                 // capitalized
-                while (true) {
+                while (isRunning) {
                     System.out.println("Waiting Message");
                     String input = in.readLine();
                     if (input == null || input.equals(".")) {
                         break;
                     }
                     Logger.getLogger(Server.class.getName()).log(Level.INFO, "Message received: "+input);
-                    static_Data.add(input);
                     
-                    out.println(input.toUpperCase());
+                    Platform.runLater(() ->  displayMessage("Essai #"+input));
+                    Platform.runLater(() -> displayImage(input));
+                    out.println(input);
                 }
                 
             } catch (IOException e) {
@@ -126,6 +150,20 @@ public class Server {
                     log("Couldn't close a socket, what's going on?");
                 }
                 log("Connection with client# " + clientNumber + " closed");
+            }
+        }
+        
+        public void terminate(){
+            try {
+                isRunning = false;
+                in.close();
+                in = null;
+                out.close();
+                out = null;
+                socket.close();
+                socket = null;
+            } catch (IOException ex) {
+                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 

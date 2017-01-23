@@ -18,14 +18,17 @@
 package bzh.terrevirtuelle.navisuleapmotion.util;
 
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.naming.TimeLimitExceededException;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_10;
@@ -41,12 +44,12 @@ public class WSClient extends WebSocketClient{
     private final String ROUTE = "Route0.nds";
     private ParserXML customParser;
     private List<ARgeoData> static_ARgeoDataArray;
+    private List<String> listID_Rep = new LinkedList<>();
 
     public List<ARgeoData> getStatic_ARgeoDataArray() {
         return static_ARgeoDataArray;
     }
     
-    private List<String> listID_Rep = new LinkedList<>();
 
     public WSClient( URI serverUri , Draft draft ) {
         super( serverUri, draft );
@@ -59,7 +62,6 @@ public class WSClient extends WebSocketClient{
     @Override
     public void onOpen( ServerHandshake handshakedata ) {
         System.out.println("Connection Opened");
-        // if you plan to refuse connection based on ip or httpfields overload: onWebsocketHandshakeReceivedAsClient
     }
 
     @Override
@@ -86,19 +88,23 @@ public class WSClient extends WebSocketClient{
     }
     
     public void sendIP() throws NotYetConnectedException, UnknownHostException{
-        String ip = InetAddress.getLocalHost().getHostAddress();
+        String ip = WSClient.getIPAddress(true);
         String cmd = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><arCommand><cmd>IPInfo</cmd><arg>%s</arg></arCommand>", ip);
         System.out.println("Sending: " + cmd);
         this.send(cmd);
-        //new WebSock(cmd).execute();
     }
     
-    public void ws_request() throws NotYetConnectedException{
+    public void sendClose() throws NotYetConnectedException, UnknownHostException{
+        String cmd = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><arCommand><cmd>ServerClosing</cmd><arg></arg></arCommand>");
+        System.out.println("Sending: " + cmd);
+        this.send(cmd);
+    }
+    
+    public void ws_request() throws TimeLimitExceededException{
         String cmd = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><arCommand><cmd>NaVigationDataSetCmd</cmd><arg>%s</arg></arCommand>", ROUTE);
         System.out.println("Sending: " + cmd);
         this.send(cmd);
         static_ARgeoDataArray = handleRepStaticData();
-        //new WebSock(cmd).execute();
     }
 
     public List<String> getListID_Rep() {
@@ -109,21 +115,29 @@ public class WSClient extends WebSocketClient{
         this.listID_Rep = listID_Rep;
     }
     
-    private List<ARgeoData> handleRepStaticData() {
+    private List<ARgeoData> handleRepStaticData() throws TimeLimitExceededException {
         Logger.getLogger("WSClient").log(Level.INFO, "handleRepStaticData");
         String message = "";
         List<String> messageList = this.getListID_Rep();
         boolean done = false;
+        int trials = 0;
         while (!done) {
             if (messageList.size() > 0 && messageList.get(0) != null) {
                 message = messageList.get(messageList.size() - 1);
                 done = true;
+                if(message.length() == 0){
+                    this.getListID_Rep().remove(messageList.size() - 1);
+                    done = false;
+                }
             } else { 
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(WSClient.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                trials++;
+                if(trials > 50)
+                    throw new TimeLimitExceededException("Cannot manage to get server answer");
             }
         }
             
@@ -163,5 +177,37 @@ public class WSClient extends WebSocketClient{
             Logger.getLogger(WSClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return wsc;
+    }
+    
+      /**
+     * Get IP address from first non-localhost interface
+     * @param useIPv4  true=return ipv4, false=return ipv6
+     * @return  address or empty string
+     */
+    public static String getIPAddress(boolean useIPv4) {
+        try {
+            List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
+            for (NetworkInterface intf : interfaces) {
+                List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
+                for (InetAddress addr : addrs) {
+                    if (!addr.isLoopbackAddress()) {
+                        String sAddr = addr.getHostAddress();
+                        //boolean isIPv4 = InetAddressUtils.isIPv4Address(sAddr);
+                        boolean isIPv4 = sAddr.indexOf(':')<0;
+
+                        if (useIPv4) {
+                            if (isIPv4) 
+                                return sAddr;
+                        } else {
+                            if (!isIPv4) {
+                                int delim = sAddr.indexOf('%'); // drop ip6 zone suffix
+                                return delim<0 ? sAddr.toUpperCase() : sAddr.substring(0, delim).toUpperCase();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) { } // for now eat exceptions
+        return "";
     }
 }

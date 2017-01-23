@@ -33,7 +33,7 @@ public class Main {
     public static WSClient wsc;
     private static Thread thread0;
     
-    public static void main( String[] args ) throws URISyntaxException, IOException, InterruptedException {
+    public static void main( String[] args ) throws Exception {
         initWSC();
         while(wsc == null){
             Thread.sleep(250);
