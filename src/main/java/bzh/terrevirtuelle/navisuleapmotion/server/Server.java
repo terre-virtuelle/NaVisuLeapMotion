@@ -17,6 +17,9 @@
  */
 package bzh.terrevirtuelle.navisuleapmotion.server;
 
+import bzh.terrevirtuelle.navisuleapmotion.util.ARgeoData;
+import bzh.terrevirtuelle.navisuleapmotion.util.ParserXML;
+import bzh.terrevirtuelle.navisuleapmotion.util.WSClient;
 import bzh.terrevirtuelle.navisuleapmotion.views.PrimaryPresenter;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,9 +27,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javax.naming.TimeLimitExceededException;
 
 /**
  *
@@ -43,6 +49,9 @@ public class Server {
     private final int port;
     private final PrimaryPresenter primaryPresenter;
     private SocketServerThread sst;
+    private ParserXML customParser;
+    private List<ARgeoData> static_ARgeoDataArray;
+    private List<String> listID_Rep = new LinkedList<>();
 
     public Server(int port, PrimaryPresenter primaryPresenter) {
         this.port = port;
@@ -136,9 +145,22 @@ public class Server {
                     }
                     Logger.getLogger(Server.class.getName()).log(Level.INFO, "Message received: "+input);
                     
-                    Platform.runLater(() ->  displayMessage("Essai #"+input));
-                    Platform.runLater(() -> displayImage(input));
-                    out.println(input);
+                    List<ARgeoData> argeoDatasList = (response(input));
+                    
+                    Logger.getLogger(Server.class.getName()).log(Level.INFO, "Command received: "+argeoDatasList.size());
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    //Platform.runLater(() ->  displayMessage("Essai #"+input));
+                    //Platform.runLater(() -> displayImage(input));
+                    //out.println(input);
                 }
                 
             } catch (IOException e) {
@@ -174,5 +196,26 @@ public class Server {
         private void log(String message) {
             System.out.println(message);
         }
+    }
+    
+    public List<String> getListID_Rep() {
+        return listID_Rep;
+    }
+
+    public void setListID_Rep(List<String> listID_Rep) {
+        this.listID_Rep = listID_Rep;
+    }
+    
+    private List<ARgeoData> response(String resp) {
+        String ans = "";
+        Logger.getAnonymousLogger().log(Level.WARNING, resp);
+        List<ARgeoData> argeoDatasList;
+        if (resp != null) {
+            customParser = new ParserXML(resp);
+            customParser.process();
+            argeoDatasList = customParser.getARgeoDatas();
+            return argeoDatasList;
+        }
+        return null;
     }
 }
