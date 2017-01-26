@@ -144,6 +144,18 @@ public class ParserXML {
     public void setXmlFile(String xmlFile) {
         this.xmlFile = xmlFile;
     }
+    
+    public String getCmd() {
+        String cmd = "";
+
+        List<String> tagValue = findInnerTagText("cmd",this.xmlFile);
+        if (tagValue.size()>0){
+            System.out.println("---name= "+tagValue.get(0));
+            cmd = tagValue.get(0);
+            return cmd;
+        }
+        return null;
+    }
 
     public List<ARgeoData> getARgeoDatas() {
         List<ARgeoData> argDatas = new ArrayList<>();

@@ -289,8 +289,7 @@ public class PrimaryPresenter {
         this.img.setImage(image);
     } */
     
-    public void handleCmd(ArCommand arcmd){
-        String cmd = arcmd.getCmd();
+    public void handleCmd(String cmd){
         
         switch(cmd){
             case "openMenu":

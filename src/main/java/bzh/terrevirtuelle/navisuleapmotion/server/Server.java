@@ -70,15 +70,18 @@ public class Server {
         this.primaryPresenter.displayMessage(msg);
     }
     
-    protected void handleCmd(ArCommand arcmd){
+    protected void handleCmd(String arcmd){
         if(arcmd == null)
             return;
         
-        String cmd = arcmd.getArg();
+        customParser = new ParserXML(arcmd);
+        
+        String cmd = customParser.getCmd();
+        Logger.getLogger(Server.class.getName()).log(Level.INFO, cmd);
         if(cmd == null)
             return;
         
-        this.primaryPresenter.handleCmd(arcmd);
+        this.primaryPresenter.handleCmd(cmd);
     }
     
 
@@ -150,7 +153,7 @@ public class Server {
                     if (input == null || input.equals(".")) {
                         break;
                     }
-                    
+                    /*
                     ArCommand navCmd = null;
                     try {
                         navCmd = new ArCommand();
@@ -158,10 +161,11 @@ public class Server {
                     } catch (JAXBException ex) {
                         Logger.getLogger(Server.class.getName()).log(Level.SEVERE, ex.toString(), ex);
                     }
+                    */
                     
-                    Logger.getLogger(Server.class.getName()).log(Level.INFO, "Received Message: "+navCmd.toString());
+                    Logger.getLogger(Server.class.getName()).log(Level.INFO, "Received Message: "+input);
                     
-                    final ArCommand cmd = navCmd;
+                    final String cmd = input;
                     Platform.runLater(() ->  handleCmd(cmd));
                 }
                 

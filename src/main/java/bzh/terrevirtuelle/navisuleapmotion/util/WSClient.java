@@ -136,7 +136,7 @@ public class WSClient extends WebSocketClient{
                     Logger.getLogger(WSClient.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 trials++;
-                if(trials > 50)
+                if(trials > 100)
                     throw new TimeLimitExceededException("Cannot manage to get server answer");
             }
         }
