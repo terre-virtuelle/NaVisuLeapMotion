@@ -25,14 +25,18 @@ import bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion;
 import static bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion.WSC;
 import bzh.terrevirtuelle.navisuleapmotion.server.Server;
 import bzh.terrevirtuelle.navisuleapmotion.util.ARgeoData;
+import bzh.terrevirtuelle.navisuleapmotion.util.ArCommand;
 import bzh.terrevirtuelle.navisuleapmotion.util.Toast;
 import bzh.terrevirtuelle.navisuleapmotion.util.WSClient;
+import com.sun.scenario.effect.Effect;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -42,9 +46,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javax.naming.TimeLimitExceededException;
 import org.java_websocket.drafts.Draft_10;
@@ -98,12 +104,23 @@ public class PrimaryPresenter {
     private Label response;
     
     @FXML
-    private ImageView img;
+    private ImageView menu1;
+    
+    @FXML
+    private ImageView menu2;
+    
+    @FXML
+    private ImageView menu3;
+    
+    @FXML
+    private ImageView menu4;
 
     int port = 8899;
     private Server server;
     private boolean isServerRunning = false;
     private final String IMGREP = "bzh/terrevirtuelle/navisuleapmotion/views/img/";
+    private List<ImageView> lmenu;
+    private ImageView currMenu;
     
     public void initialize() {
         primary.showingProperty().addListener((obs, oldValue, newValue) -> {
@@ -116,6 +133,18 @@ public class PrimaryPresenter {
                         System.out.println("Search")));
             }
         });
+        
+        this.menu1.setVisible(false);
+        this.menu2.setVisible(false);
+        this.menu3.setVisible(false);
+        this.menu4.setVisible(false);
+
+        this.menu1.setImage(new Image(IMGREP + "1.png"));
+        this.menu2.setImage(new Image(IMGREP + "2.png"));
+        this.menu3.setImage(new Image(IMGREP + "3.png"));
+        this.menu4.setImage(new Image(IMGREP + "4.png"));
+        
+        this.lmenu = new ArrayList<>();
     }
 
     @FXML
@@ -251,13 +280,82 @@ public class PrimaryPresenter {
     public void displayMessage(String msg){
         this.response.setText(msg);
     }
-    
+    /*
     public void displayImage(String msg){
         System.out.println(msg);
         int num = Integer.decode(msg);
         String url = IMGREP + ((num % 2 == 1)?"1.png":"2.png");
         Image image = new Image(url);
         this.img.setImage(image);
+    } */
+    
+    public void handleCmd(ArCommand arcmd){
+        String cmd = arcmd.getCmd();
+        
+        switch(cmd){
+            case "openMenu":
+                this.lmenu.clear();
+                this.lmenu.add(this.menu1);
+                this.lmenu.add(this.menu2);
+                this.lmenu.add(this.menu3);
+                this.lmenu.add(this.menu4);
+                this.currMenu = this.menu1;
+                
+                selected();
+                
+                this.menu1.setVisible(true);
+                this.menu2.setVisible(true);
+                this.menu3.setVisible(true);
+                this.menu4.setVisible(true);      
+                break;
+                
+            case "closeMenu":
+                this.currMenu.setEffect(null);
+                this.currMenu = null;
+                this.lmenu.clear();
+                
+                this.menu1.setVisible(false);
+                this.menu2.setVisible(false);
+                this.menu3.setVisible(false);
+                this.menu4.setVisible(false);
+                break;
+            
+            case "selectMenu":
+                this.displayMessage("Selected Menu: "+this.currMenu.toString());
+                break;
+            
+            case "leftMenu":
+                int idx = this.lmenu.indexOf(this.currMenu);
+                idx = (idx == 0)?(this.lmenu.size()-1):(idx-1);
+                
+                this.currMenu.setEffect(null);
+                this.currMenu = this.lmenu.get(idx);
+                selected();
+                break;
+                
+            case "rightMenu":
+                int idx2 = this.lmenu.indexOf(this.currMenu);
+                idx2 = (idx2 == (this.lmenu.size()-1))?(0):(idx2+1);
+                
+                this.currMenu.setEffect(null);
+                this.currMenu = this.lmenu.get(idx2);
+                selected();
+                break;
+            
+            default:
+                break;
+        }
+    }
+    
+    private void selected(){
+        int depth = 50; //Setting the uniform variable for the glow width and height
+        DropShadow borderGlow= new DropShadow();
+        borderGlow.setOffsetY(0f);
+        borderGlow.setOffsetX(0f);
+        borderGlow.setColor(Color.GRAY);
+        borderGlow.setWidth(depth);
+        borderGlow.setHeight(depth);
+        this.currMenu.setEffect(borderGlow);
     }
     
 }

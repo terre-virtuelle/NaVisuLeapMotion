@@ -18,13 +18,15 @@
 package bzh.terrevirtuelle.navisuleapmotion.server;
 
 import bzh.terrevirtuelle.navisuleapmotion.util.ARgeoData;
+import bzh.terrevirtuelle.navisuleapmotion.util.ArCommand;
+import bzh.terrevirtuelle.navisuleapmotion.util.ImportExportXML;
 import bzh.terrevirtuelle.navisuleapmotion.util.ParserXML;
-import bzh.terrevirtuelle.navisuleapmotion.util.WSClient;
 import bzh.terrevirtuelle.navisuleapmotion.views.PrimaryPresenter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -32,7 +34,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javax.naming.TimeLimitExceededException;
+import javax.xml.bind.JAXBException;
 
 /**
  *
@@ -50,8 +52,6 @@ public class Server {
     private final PrimaryPresenter primaryPresenter;
     private SocketServerThread sst;
     private ParserXML customParser;
-    private List<ARgeoData> static_ARgeoDataArray;
-    private List<String> listID_Rep = new LinkedList<>();
 
     public Server(int port, PrimaryPresenter primaryPresenter) {
         this.port = port;
@@ -70,8 +70,15 @@ public class Server {
         this.primaryPresenter.displayMessage(msg);
     }
     
-    protected void displayImage(String msg){
-        this.primaryPresenter.displayImage(msg);
+    protected void handleCmd(ArCommand arcmd){
+        if(arcmd == null)
+            return;
+        
+        String cmd = arcmd.getArg();
+        if(cmd == null)
+            return;
+        
+        this.primaryPresenter.handleCmd(arcmd);
     }
     
 
@@ -119,7 +126,7 @@ public class Server {
         public HandlerServer(Socket socket, int clientNumber) {
             this.socket = socket;
             this.clientNumber = clientNumber;
-            log("New connection with client# " + clientNumber + " at " + socket);
+            Logger.getLogger(Server.class.getName()).log(Level.INFO, "New connection with client# " + clientNumber + " at " + socket);
         }
 
         /**
@@ -143,35 +150,30 @@ public class Server {
                     if (input == null || input.equals(".")) {
                         break;
                     }
-                    Logger.getLogger(Server.class.getName()).log(Level.INFO, "Message received: "+input);
                     
-                    List<ARgeoData> argeoDatasList = (response(input));
+                    ArCommand navCmd = null;
+                    try {
+                        navCmd = new ArCommand();
+                        navCmd = ImportExportXML.imports(navCmd, new StringReader(input));
+                    } catch (JAXBException ex) {
+                        Logger.getLogger(Server.class.getName()).log(Level.SEVERE, ex.toString(), ex);
+                    }
                     
-                    Logger.getLogger(Server.class.getName()).log(Level.INFO, "Command received: "+argeoDatasList.size());
+                    Logger.getLogger(Server.class.getName()).log(Level.INFO, "Received Message: "+navCmd.toString());
                     
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    //Platform.runLater(() ->  displayMessage("Essai #"+input));
-                    //Platform.runLater(() -> displayImage(input));
-                    //out.println(input);
+                    final ArCommand cmd = navCmd;
+                    Platform.runLater(() ->  handleCmd(cmd));
                 }
                 
             } catch (IOException e) {
-                log("Error handling client# " + clientNumber + ": " + e);
+                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, "Error handling client# " + clientNumber + ": " + e);
             } finally {
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    log("Couldn't close a socket, what's going on?");
+                    Logger.getLogger(Server.class.getName()).log(Level.SEVERE, "Couldn't close a socket, what's going on?");
                 }
-                log("Connection with client# " + clientNumber + " closed");
+                Logger.getLogger(Server.class.getName()).log(Level.INFO, "Connection with client# " + clientNumber + " closed");
             }
         }
         
@@ -188,34 +190,5 @@ public class Server {
                 Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
-        /**
-         * Logs a simple message. In this case we just write the message to the
-         * server applications standard output.
-         */
-        private void log(String message) {
-            System.out.println(message);
-        }
-    }
-    
-    public List<String> getListID_Rep() {
-        return listID_Rep;
-    }
-
-    public void setListID_Rep(List<String> listID_Rep) {
-        this.listID_Rep = listID_Rep;
-    }
-    
-    private List<ARgeoData> response(String resp) {
-        String ans = "";
-        Logger.getAnonymousLogger().log(Level.WARNING, resp);
-        List<ARgeoData> argeoDatasList;
-        if (resp != null) {
-            customParser = new ParserXML(resp);
-            customParser.process();
-            argeoDatasList = customParser.getARgeoDatas();
-            return argeoDatasList;
-        }
-        return null;
     }
 }
