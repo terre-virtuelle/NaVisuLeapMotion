@@ -105,22 +105,36 @@ public class PrimaryPresenter {
     
     @FXML
     private ImageView menu1;
-    
     @FXML
     private ImageView menu2;
-    
     @FXML
     private ImageView menu3;
-    
     @FXML
     private ImageView menu4;
+    @FXML
+    private ImageView menu5;
+    @FXML
+    private ImageView menu6;
+    @FXML
+    private ImageView menu7;
+    @FXML
+    private ImageView menu8;
+    @FXML
+    private ImageView menu9;
+    @FXML
+    private ImageView menu10;
 
     int port = 8899;
     private Server server;
     private boolean isServerRunning = false;
     private final String IMGREP = "bzh/terrevirtuelle/navisuleapmotion/views/img/";
-    private List<ImageView> lmenu;
-    private ImageView currMenu;
+    
+    private List<ImageView> menuHolder;
+    private List<SimpleMenu> menuList;
+    
+    private SimpleMenu currMenu;
+    private int currIndex;
+    private int maxIndex;
     
     public void initialize() {
         primary.showingProperty().addListener((obs, oldValue, newValue) -> {
@@ -134,17 +148,22 @@ public class PrimaryPresenter {
             }
         });
         
-        this.menu1.setVisible(false);
-        this.menu2.setVisible(false);
-        this.menu3.setVisible(false);
-        this.menu4.setVisible(false);
-
-        this.menu1.setImage(new Image(IMGREP + "1.png"));
-        this.menu2.setImage(new Image(IMGREP + "2.png"));
-        this.menu3.setImage(new Image(IMGREP + "3.png"));
-        this.menu4.setImage(new Image(IMGREP + "4.png"));
+        menuHolder = new ArrayList<>();
+        menuHolder.add(this.menu1);
+        menuHolder.add(this.menu2);
+        menuHolder.add(this.menu3);
+        menuHolder.add(this.menu4);
+        menuHolder.add(this.menu5);
+        menuHolder.add(this.menu6);
+        menuHolder.add(this.menu7);
+        menuHolder.add(this.menu8);
+        menuHolder.add(this.menu9);
+        menuHolder.add(this.menu10);
         
-        this.lmenu = new ArrayList<>();
+        menuHolder.forEach( (item) -> ((ImageView)item).setVisible(false));
+        
+        this.menuList = new ArrayList<>();
+        initMenu();
     }
 
     @FXML
@@ -178,19 +197,12 @@ public class PrimaryPresenter {
                 Logger.getLogger(PrimaryPresenter.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
-        /**
-         * Recherches pour changer le texte en fonction de celui de la réponse.
-         * Plus tard, on devra afficher les images
-         */
-//        String data = Server.getStatic_Data().get(0);
+
         this.data.setText("Test");
         
         route0.setDisable(false);
         datagrid.setVisible(true);
         cServer.setDisable(false);
-        //Possibly try to display a loading icon or something while trying to connect to NaVisu
-        //MobileApplication.getInstance().switchView(SECONDARY_VIEW);
     }
     
     @FXML
@@ -275,6 +287,67 @@ public class PrimaryPresenter {
         });
         thread0.start();
     }
+    
+    private void initMenu(){
+        SimpleMenu io =  new SimpleMenu("system.png");
+        SimpleMenu tools = new SimpleMenu("tools.png");
+        SimpleMenu charts =  new SimpleMenu("charts.png");
+        SimpleMenu tide =  new SimpleMenu("tides.png");
+        SimpleMenu meteo =  new SimpleMenu("meteo.png");
+        SimpleMenu instr =  new SimpleMenu("instruments.png");
+        SimpleMenu nav =  new SimpleMenu("navigation.png");
+        SimpleMenu book =  new SimpleMenu("book.png");
+        
+        SimpleMenu earth = new SimpleMenu("earth.png", tools);
+        SimpleMenu devices = new SimpleMenu("devices.png", tools);
+        
+        SimpleMenu models = new SimpleMenu("models.png", earth);
+        SimpleMenu servermenu = new SimpleMenu("server.png", devices);
+        SimpleMenu lmotion = new SimpleMenu("leapMotion.png", devices);
+        
+        
+        SimpleMenu bathy = new SimpleMenu("bathy.png", models);
+        bathy.setAction("Activate Bathy");
+        SimpleMenu noBathy = new SimpleMenu("noBathy.png", models);
+        noBathy.setAction("Desactivate Bathy");
+        SimpleMenu elevation = new SimpleMenu("elevation.png", models);
+        elevation.setAction("Activate Elevation");
+        SimpleMenu noElevation = new SimpleMenu("noElevation.png", servermenu);
+        noElevation.setAction("Desactivate Elevation");
+        SimpleMenu options = new SimpleMenu("options.png", servermenu);
+        options.setAction("Open Server Config");
+        SimpleMenu lmotionOn = new SimpleMenu("leapMotionOn.png", lmotion);
+        lmotionOn.setAction("Enable leapmotion");
+        SimpleMenu lmotionOff = new SimpleMenu("leapMotionOff.png", lmotion);
+        lmotionOff.setAction("Disable leapmotion");
+        
+        models.addSubMenu(bathy);
+        models.addSubMenu(noBathy);
+        models.addSubMenu(elevation);
+        models.addSubMenu(noElevation);
+        
+        servermenu.addSubMenu(options);
+        
+        lmotion.addSubMenu(lmotionOn);
+        lmotion.addSubMenu(lmotionOff);
+        
+        devices.addSubMenu(servermenu);
+        devices.addSubMenu(lmotion);
+        
+        earth.addSubMenu(models);
+        
+        tools.addSubMenu(earth);
+        tools.addSubMenu(devices);
+                
+        this.menuList.add(io);
+        this.menuList.add(tools);
+        this.menuList.add(charts);
+        this.menuList.add(tide);
+        this.menuList.add(meteo);
+        this.menuList.add(instr);
+        this.menuList.add(nav);
+        this.menuList.add(book);
+    }
 
         
     public void displayMessage(String msg){
@@ -293,57 +366,74 @@ public class PrimaryPresenter {
         
         switch(cmd){
             case "openMenu":
-                this.lmenu.clear();
-                this.lmenu.add(this.menu1);
-                this.lmenu.add(this.menu2);
-                this.lmenu.add(this.menu3);
-                this.lmenu.add(this.menu4);
-                this.currMenu = this.menu1;
                 
-                selected();
+                menuList.forEach( (menu) -> {ImageView tmp = this.menuHolder.get(menuList.indexOf(menu)); 
+                                             tmp.setImage(menu.getImage());
+                                             tmp.setVisible(true);
+                });
+
+                this.currIndex = 0;
+                this.maxIndex = menuList.size()-1;
+                this.currMenu = menuList.get(currIndex);
                 
-                this.menu1.setVisible(true);
-                this.menu2.setVisible(true);
-                this.menu3.setVisible(true);
-                this.menu4.setVisible(true);      
+                selected();  
                 break;
                 
             case "closeMenu":
-                this.currMenu.setEffect(null);
+                this.menuHolder.get(this.currIndex).setEffect(null);
+                this.currIndex = 0;
+                this.maxIndex = 0;
                 this.currMenu = null;
-                this.lmenu.clear();
                 
-                this.menu1.setVisible(false);
-                this.menu2.setVisible(false);
-                this.menu3.setVisible(false);
-                this.menu4.setVisible(false);
+                menuHolder.forEach( (menuholder) -> ((ImageView)menuholder).setVisible(false) );
                 break;
             
             case "selectMenu":
-                this.displayMessage("Selected Menu: "+this.currMenu.toString());
+                if(currMenu.getAction() != null)
+                    displayMessage(currMenu.getAction());
+                else
+                    openMenu();
                 break;
             
             case "leftMenu":
-                int idx = this.lmenu.indexOf(this.currMenu);
-                idx = (idx == 0)?(this.lmenu.size()-1):(idx-1);
+                this.menuHolder.get(this.currIndex).setEffect(null);
+                this.currIndex = (this.currIndex == 0)?(this.maxIndex):(this.currIndex -1);
+                if(this.currMenu.getParent() == null)
+                    this.currMenu = this.menuList.get(this.currIndex);
+                else
+                    this.currMenu = this.currMenu.getParent().getSubMenu().get(this.currIndex);
                 
-                this.currMenu.setEffect(null);
-                this.currMenu = this.lmenu.get(idx);
                 selected();
                 break;
                 
             case "rightMenu":
-                int idx2 = this.lmenu.indexOf(this.currMenu);
-                idx2 = (idx2 == (this.lmenu.size()-1))?(0):(idx2+1);
+                this.menuHolder.get(this.currIndex).setEffect(null);
+                this.currIndex  = (this.currIndex  == this.maxIndex)?(0):(this.currIndex +1);
+                if(this.currMenu.getParent() == null)
+                    this.currMenu = this.menuList.get(this.currIndex);
+                else
+                    this.currMenu = this.currMenu.getParent().getSubMenu().get(this.currIndex);
                 
-                this.currMenu.setEffect(null);
-                this.currMenu = this.lmenu.get(idx2);
                 selected();
                 break;
             
             default:
                 break;
         }
+    }
+    
+    private void openMenu(){
+        menuHolder.forEach( (menuholder) -> ((ImageView)menuholder).setVisible(false) );
+        this.currMenu.getSubMenu().forEach( (menu) -> {ImageView tmp = this.menuHolder.get(this.currMenu.getSubMenu().indexOf(menu)); 
+                                             tmp.setImage(menu.getImage());
+                                             tmp.setVisible(true);
+        });
+
+        this.currIndex = 0;
+        this.maxIndex = this.currMenu.getSubMenu().size()-1;
+        this.currMenu = this.currMenu.getSubMenu().get(currIndex);
+                
+        selected();  
     }
     
     private void selected(){
@@ -354,7 +444,77 @@ public class PrimaryPresenter {
         borderGlow.setColor(Color.GRAY);
         borderGlow.setWidth(depth);
         borderGlow.setHeight(depth);
-        this.currMenu.setEffect(borderGlow);
+        this.menuHolder.get(this.currIndex).setEffect(borderGlow);
+    }
+    
+    private class SimpleMenu{
+        private Image image;
+        private SimpleMenu parent;
+        private List<SimpleMenu> subMenu;
+        private String action;
+        
+        public SimpleMenu(){
+            this.image = null;
+            this.parent = null;
+            this.subMenu = null;
+            this.action = "No actions Yet";
+        }
+        
+        public SimpleMenu(String imageName){
+            this.image = new Image(IMGREP + imageName);
+            this.parent = null;
+            this.subMenu = null;
+            this.action = "No actions Yet";
+        }
+        
+        public SimpleMenu(String imageName, SimpleMenu parent){
+            this.image = new Image(IMGREP + imageName);
+            this.parent = parent;
+            this.subMenu = null;
+            this.action = "No actions Yet";
+        }
+
+        public Image getImage() {
+            return image;
+        }
+
+        public void setImage(String imageName) {
+            this.image = new Image(IMGREP + imageName);
+        }
+
+        public SimpleMenu getParent() {
+            return parent;
+        }
+
+        public void setParent(SimpleMenu parent) {
+            this.parent = parent;
+        }
+
+        public List<SimpleMenu> getSubMenu() {
+            return subMenu;
+        }
+
+        public void setSubMenu(List<SimpleMenu> subMenu) {
+            if(action != null)
+                action = null;
+            this.subMenu = subMenu;
+        }
+        
+        public void addSubMenu(SimpleMenu menu){
+            if(action != null)
+                action = null;
+            if(this.subMenu == null)
+                this.subMenu = new ArrayList<SimpleMenu>();
+            this.subMenu.add(menu);
+        }
+
+        public String getAction() {
+            return action;
+        }
+
+        public void setAction(String action) {
+            this.action = action;
+        }
     }
     
 }
