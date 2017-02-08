@@ -15,21 +15,20 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-
 <View fx:id="primary" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="350.0" stylesheets="@primary.css" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="bzh.terrevirtuelle.navisuleapmotion.views.PrimaryPresenter">
    <bottom>
-      <FlowPane prefHeight="200.0" prefWidth="200.0">
+      <FlowPane>
          <children>
-            <ImageView fx:id="menu1" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="menu2" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="menu3" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="menu4" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="menu5" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="menu6" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="menu7" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="menu8" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="menu9" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="menu10" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu1" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu2" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu3" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu4" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu5" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu6" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu7" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu8" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu9" pickOnBounds="true" preserveRatio="true" />
+            <ImageView fx:id="menu10" pickOnBounds="true" preserveRatio="true" />
          </children>
       </FlowPane>
    </bottom>

@@ -25,11 +25,9 @@ import bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion;
 import static bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion.WSC;
 import bzh.terrevirtuelle.navisuleapmotion.server.Server;
 import bzh.terrevirtuelle.navisuleapmotion.util.ARgeoData;
-import bzh.terrevirtuelle.navisuleapmotion.util.ArCommand;
+import bzh.terrevirtuelle.navisuleapmotion.util.SimpleMenu;
 import bzh.terrevirtuelle.navisuleapmotion.util.Toast;
 import bzh.terrevirtuelle.navisuleapmotion.util.WSClient;
-import com.sun.scenario.effect.Effect;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
@@ -60,49 +58,49 @@ import org.java_websocket.drafts.Draft_10;
  * @author Di Falco Nicola
  */
 public class PrimaryPresenter {
-    
-    private final String IPADDRESS_PATTERN =
-		"^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-		"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-		"([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
-		"([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
+
+    private final String IPADDRESS_PATTERN
+            = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\."
+            + "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\."
+            + "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\."
+            + "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$";
 
     @FXML
     private View primary;
 
     @FXML
     private GridPane datagrid;
-    
+
     @FXML
     private Label latval;
-    
+
     @FXML
     private Label lonval;
-    
+
     @FXML
     private Label nameval;
-    
+
     @FXML
     private TextField ip;
-    
+
     @FXML
     private Button button;
-    
+
     @FXML
     private Label serverText;
-    
+
     @FXML
     private Label data;
-    
+
     @FXML
     private Button route0;
-    
+
     @FXML
     private Button cServer;
-    
+
     @FXML
     private Label response;
-    
+
     @FXML
     private ImageView menu1;
     @FXML
@@ -128,26 +126,31 @@ public class PrimaryPresenter {
     private Server server;
     private boolean isServerRunning = false;
     private final String IMGREP = "bzh/terrevirtuelle/navisuleapmotion/views/img/";
-    
+
     private List<ImageView> menuHolder;
     private List<SimpleMenu> menuList;
-    
+
+    /**
+     * Used Mainly for back action, as Back menu doesn't have any parent (reused)
+     */
+    private SimpleMenu currParent;
     private SimpleMenu currMenu;
+    
     private int currIndex;
     private int maxIndex;
-    
+
     public void initialize() {
         primary.showingProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue) {
                 AppBar appBar = MobileApplication.getInstance().getAppBar();
-                appBar.setNavIcon(MaterialDesignIcon.MENU.button(e -> 
-                        MobileApplication.getInstance().showLayer(NaVisuLeapMotion.MENU_LAYER)));
+                appBar.setNavIcon(MaterialDesignIcon.MENU.button(e
+                        -> MobileApplication.getInstance().showLayer(NaVisuLeapMotion.MENU_LAYER)));
                 appBar.setTitleText("Primary");
-                appBar.getActionItems().add(MaterialDesignIcon.SEARCH.button(e -> 
-                        System.out.println("Search")));
+                appBar.getActionItems().add(MaterialDesignIcon.SEARCH.button(e
+                        -> System.out.println("Search")));
             }
         });
-        
+
         menuHolder = new ArrayList<>();
         menuHolder.add(this.menu1);
         menuHolder.add(this.menu2);
@@ -159,8 +162,8 @@ public class PrimaryPresenter {
         menuHolder.add(this.menu8);
         menuHolder.add(this.menu9);
         menuHolder.add(this.menu10);
-        
-        menuHolder.forEach( (item) -> ((ImageView)item).setVisible(false));
+
+        menuHolder.forEach((item) -> ((ImageView) item).setVisible(false));
         
         this.menuList = new ArrayList<>();
         initMenu();
@@ -169,28 +172,29 @@ public class PrimaryPresenter {
     @FXML
     void buttonClick(ActionEvent e) {
         Pattern pattern = Pattern.compile(IPADDRESS_PATTERN);
-        
-        if(WSC != null)
+
+        if (WSC != null) {
             WSC.close();
-        
-        if(ip.getText().isEmpty())
+        }
+
+        if (ip.getText().isEmpty()) {
             initWSC();
-        else {
+        } else {
             Matcher matcher = pattern.matcher(ip.getText());
-            if(matcher.matches())
+            if (matcher.matches()) {
                 initWSC(ip.getText());
-            else {
+            } else {
                 String toastMsg = "Wrong IP format";
                 int toastMsgTime = 2000; //3.5 seconds
                 int fadeInTime = 500; //0.5 seconds
-                int fadeOutTime= 500; //0.5 seconds
-                Toast.makeText( (Stage) primary.getScene().getWindow(), toastMsg, toastMsgTime, fadeInTime, fadeOutTime);
+                int fadeOutTime = 500; //0.5 seconds
+                Toast.makeText((Stage) primary.getScene().getWindow(), toastMsg, toastMsgTime, fadeInTime, fadeOutTime);
                 return;
             }
-                
+
         }
-        
-        while(WSC == null){
+
+        while (WSC == null) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
@@ -199,12 +203,12 @@ public class PrimaryPresenter {
         }
 
         this.data.setText("Test");
-        
+
         route0.setDisable(false);
         datagrid.setVisible(true);
         cServer.setDisable(false);
     }
-    
+
     @FXML
     void buttonRoute0(ActionEvent e) {
         try {
@@ -213,26 +217,26 @@ public class PrimaryPresenter {
             String toastMsg = "Connection is not initialized (maybe check IP)";
             int toastMsgTime = 2000; //3.5 seconds
             int fadeInTime = 500; //0.5 seconds
-            int fadeOutTime= 500; //0.5 seconds
-            Toast.makeText( (Stage) primary.getScene().getWindow(), toastMsg, toastMsgTime, fadeInTime, fadeOutTime);
+            int fadeOutTime = 500; //0.5 seconds
+            Toast.makeText((Stage) primary.getScene().getWindow(), toastMsg, toastMsgTime, fadeInTime, fadeOutTime);
             return;
         } catch (TimeLimitExceededException ex) {
             int toastMsgTime = 2000; //3.5 seconds
             int fadeInTime = 500; //0.5 seconds
-            int fadeOutTime= 500; //0.5 seconds
-            Toast.makeText( (Stage) primary.getScene().getWindow(), ex.getExplanation(), toastMsgTime, fadeInTime, fadeOutTime);
+            int fadeOutTime = 500; //0.5 seconds
+            Toast.makeText((Stage) primary.getScene().getWindow(), ex.getExplanation(), toastMsgTime, fadeInTime, fadeOutTime);
             return;
         }
         ARgeoData data2 = WSC.getStatic_ARgeoDataArray().get(0);
-        Logger.getLogger(WSClient.class.getName()).log(Level.INFO, "Data: "+data2.toString());
+        Logger.getLogger(WSClient.class.getName()).log(Level.INFO, "Data: " + data2.toString());
         latval.setText(String.valueOf(data2.getLat()));
         lonval.setText(String.valueOf(data2.getLon()));
         nameval.setText(data2.getName());
     }
-    
+
     @FXML
     void serverClick(ActionEvent e) {
-        if(isServerRunning){
+        if (isServerRunning) {
             try {
                 WSC.sendClose();
             } catch (NotYetConnectedException | UnknownHostException ex) {
@@ -243,10 +247,10 @@ public class PrimaryPresenter {
             serverText.setText("The  server is closed.");
             cServer.setText("Deploy Server");
             isServerRunning = !isServerRunning;
-        }else{
+        } else {
             server = new Server(port, this);
             serverText.setText("The  server is started.");
-            
+
             try {
                 WSC.sendIP();
                 this.data.setText(WSClient.getIPAddress(true));
@@ -258,13 +262,13 @@ public class PrimaryPresenter {
             isServerRunning = !isServerRunning;
         }
     }
-    
-    public static void initWSC(){
-        Thread thread0 =new Thread((Runnable) () -> {
+
+    public static void initWSC() {
+        Thread thread0 = new Thread((Runnable) () -> {
             System.out.println("Current Time =" + new Date());
             try {
                 System.out.println("*********** Connecting *************");
-                WSC = new WSClient( new URI( "ws://localhost:8787/navigation" ), new Draft_10() ); // more about drafts here: http://github.com/TooTallNate/Java-WebSocket/wiki/Drafts
+                WSC = new WSClient(new URI("ws://localhost:8787/navigation"), new Draft_10()); // more about drafts here: http://github.com/TooTallNate/Java-WebSocket/wiki/Drafts
                 WSC.connect();
             } catch (URISyntaxException ex) {
                 Logger.getLogger(WSClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -272,14 +276,13 @@ public class PrimaryPresenter {
         });
         thread0.start();
     }
-    
-    
-    public static void initWSC(String ip){
-        Thread thread0 =new Thread((Runnable) () -> {
+
+    public static void initWSC(String ip) {
+        Thread thread0 = new Thread((Runnable) () -> {
             System.out.println("Current Time =" + new Date());
             try {
                 System.out.println("*********** Connecting *************");
-                WSC = new WSClient( new URI( "ws://" + ip + ":8787/navigation" ), new Draft_10() ); // more about drafts here: http://github.com/TooTallNate/Java-WebSocket/wiki/Drafts
+                WSC = new WSClient(new URI("ws://" + ip + ":8787/navigation"), new Draft_10()); // more about drafts here: http://github.com/TooTallNate/Java-WebSocket/wiki/Drafts
                 WSC.connect();
             } catch (URISyntaxException ex) {
                 Logger.getLogger(WSClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -287,72 +290,417 @@ public class PrimaryPresenter {
         });
         thread0.start();
     }
-    
-    private void initMenu(){
-        SimpleMenu io =  new SimpleMenu("system.png");
-        SimpleMenu tools = new SimpleMenu("tools.png");
-        SimpleMenu charts =  new SimpleMenu("charts.png");
-        SimpleMenu tide =  new SimpleMenu("tides.png");
-        SimpleMenu meteo =  new SimpleMenu("meteo.png");
-        SimpleMenu instr =  new SimpleMenu("instruments.png");
-        SimpleMenu nav =  new SimpleMenu("navigation.png");
-        SimpleMenu book =  new SimpleMenu("book.png");
+
+    private void initMenu() {
+        /**
+         * Main Menus
+         */
+        SimpleMenu io = new SimpleMenu("system.png", this);
+        SimpleMenu tools = new SimpleMenu("tools.png", this);
+        SimpleMenu charts = new SimpleMenu("charts.png", this);
+        SimpleMenu tide = new SimpleMenu("tides.png", this);
+        SimpleMenu meteo = new SimpleMenu("meteo.png", this);
+        SimpleMenu instr = new SimpleMenu("instruments.png", this);
+        SimpleMenu navigation = new SimpleMenu("navigation.png", this);
+        SimpleMenu book = new SimpleMenu("book.png", this);
+
+        /**
+         * Back Menu
+         */
+        SimpleMenu back = new SimpleMenu("back.png", this);
+        back.setAction("GoBack");
         
-        SimpleMenu earth = new SimpleMenu("earth.png", tools);
-        SimpleMenu devices = new SimpleMenu("devices.png", tools);
+        /**
+         * I/O Sub-menus
+         */
+        SimpleMenu IOdata = new SimpleMenu("data.png", io, this);
+        SimpleMenu simu = new SimpleMenu("simu.png", io, this);
         
-        SimpleMenu models = new SimpleMenu("models.png", earth);
-        SimpleMenu servermenu = new SimpleMenu("server.png", devices);
-        SimpleMenu lmotion = new SimpleMenu("leapMotion.png", devices);
+        SimpleMenu files = new SimpleMenu("files.png", IOdata, this);
+        SimpleMenu files2 = new SimpleMenu("files.png", simu, this);
         
+        SimpleMenu wms = new SimpleMenu("wms.png", files, "Open WMS sites", this);
+        SimpleMenu collada = new SimpleMenu("collada.png", files, "Open Collada Files", this);
+        SimpleMenu kml = new SimpleMenu("kml.png", files, "Open KML Files", this);
+        SimpleMenu shapeFile = new SimpleMenu("shapefile.png", files, "Open ShapeFile Files", this);
         
-        SimpleMenu bathy = new SimpleMenu("bathy.png", models);
-        bathy.setAction("Activate Bathy");
-        SimpleMenu noBathy = new SimpleMenu("noBathy.png", models);
-        noBathy.setAction("Desactivate Bathy");
-        SimpleMenu elevation = new SimpleMenu("elevation.png", models);
-        elevation.setAction("Activate Elevation");
-        SimpleMenu noElevation = new SimpleMenu("noElevation.png", servermenu);
-        noElevation.setAction("Desactivate Elevation");
-        SimpleMenu options = new SimpleMenu("options.png", servermenu);
-        options.setAction("Open Server Config");
-        SimpleMenu lmotionOn = new SimpleMenu("leapMotionOn.png", lmotion);
-        lmotionOn.setAction("Enable leapmotion");
-        SimpleMenu lmotionOff = new SimpleMenu("leapMotionOff.png", lmotion);
-        lmotionOff.setAction("Disable leapmotion");
+        SimpleMenu nmeaOn = new SimpleMenu("nmeaOn.png", files2, "Enable NMEA", this);
+        SimpleMenu nmeaOff = new SimpleMenu("nmeaOff.png", files2, "Disable NMEA", this);
         
+        files2.addSubMenu(back);
+        files2.addSubMenu(nmeaOn);
+        files2.addSubMenu(nmeaOff);
+        
+        files.addSubMenu(back);
+        files.addSubMenu(wms);
+        files.addSubMenu(collada);
+        files.addSubMenu(kml);
+        files.addSubMenu(shapeFile);
+        
+        simu.addSubMenu(back);
+        simu.addSubMenu(files2);
+        
+        IOdata.addSubMenu(back);
+        IOdata.addSubMenu(files);
+        
+        io.addSubMenu(back);
+        io.addSubMenu(IOdata);
+        io.addSubMenu(simu);
+        
+        /**
+         * Tools Sub-menus
+         */
+        SimpleMenu earth = new SimpleMenu("earth.png", tools, this);
+        SimpleMenu devices = new SimpleMenu("devices.png", tools, this);
+
+        SimpleMenu models = new SimpleMenu("models.png", earth, this);
+        SimpleMenu servermenu = new SimpleMenu("server.png", devices, this);
+        SimpleMenu lmotion = new SimpleMenu("leapMotion.png", devices, this);
+
+        SimpleMenu bathy = new SimpleMenu("bathy.png", models, "Activate Bathy", this);
+        SimpleMenu noBathy = new SimpleMenu("noBathy.png", models, "Desactivate Bathy", this);
+        SimpleMenu elevation = new SimpleMenu("elevation.png", models, "Activate Elevation", this);
+        SimpleMenu noElevation = new SimpleMenu("noElevation.png", servermenu, "Desactivate Elevation", this);
+        SimpleMenu options = new SimpleMenu("options.png", servermenu, "Open Server Config", this);
+        SimpleMenu lmotionOn = new SimpleMenu("leapMotionOn.png", lmotion, "Enable leapmotion", this);
+        SimpleMenu lmotionOff = new SimpleMenu("leapMotionOff.png", lmotion, "Disable leapmotion", this);
+
+        models.addSubMenu(back);
         models.addSubMenu(bathy);
         models.addSubMenu(noBathy);
         models.addSubMenu(elevation);
         models.addSubMenu(noElevation);
-        
+
+        servermenu.addSubMenu(back);
         servermenu.addSubMenu(options);
-        
+
+        lmotion.addSubMenu(back);
         lmotion.addSubMenu(lmotionOn);
         lmotion.addSubMenu(lmotionOff);
-        
+
+        devices.addSubMenu(back);
         devices.addSubMenu(servermenu);
         devices.addSubMenu(lmotion);
-        
+
+        earth.addSubMenu(back);
         earth.addSubMenu(models);
-        
+
+        tools.addSubMenu(back);
         tools.addSubMenu(earth);
         tools.addSubMenu(devices);
-                
+
+        /**
+         * Charts Sub-menus
+         */
+        SimpleMenu nav = new SimpleMenu("nav.png", charts, this);
+        SimpleMenu bathyCharts = new SimpleMenu("bathy.png", charts, this);
+        SimpleMenu sediment= new SimpleMenu("sediment.png", charts, this);
+        SimpleMenu magnet = new SimpleMenu("magnetism.png", charts, this);
+
+        SimpleMenu vector = new SimpleMenu("vector.png", nav, this);
+        SimpleMenu raster = new SimpleMenu("raster.png", nav, this);
+        
+        SimpleMenu images = new SimpleMenu("images.png", bathyCharts, this);
+        SimpleMenu dataCBathy = new SimpleMenu("data.png", bathyCharts, this);
+        
+        SimpleMenu dataCSedi = new SimpleMenu("data.png", sediment, this);
+        
+        SimpleMenu dataCMagnet = new SimpleMenu("data.png", magnet, this);
+        
+        SimpleMenu S57 = new SimpleMenu("s57.png", vector, "Open S57 Charts", this);
+        
+        SimpleMenu bsb = new SimpleMenu("bsbkap.png", raster, "Open BSB Charts", this);
+        SimpleMenu geoTiff = new SimpleMenu("geotiff.png", raster, "Open GeoTiff Charts", this);
+        
+        SimpleMenu emodnet = new SimpleMenu("emodnet.png", images, "Load EMODnet Images", this);
+        SimpleMenu gebcoImages = new SimpleMenu("gebco.png", images, "Load GEBCO Images", this);
+        
+        SimpleMenu shomOn = new SimpleMenu("dbshomon.png", dataCBathy, "Enable SHOM Data", this);
+        SimpleMenu shomOff = new SimpleMenu("dbshomoff.png", dataCBathy, "Disable SHOM Data", this);
+        SimpleMenu gebcoData = new SimpleMenu("gebco.png", dataCBathy, "Load GEBCO Data", this);
+        
+        SimpleMenu shom = new SimpleMenu("shom.png", dataCSedi, "Open SHOM Chart", this);
+        
+        SimpleMenu noaa = new SimpleMenu("noaa.png", dataCMagnet, "Open NOAA Chart", this);
+        
+        vector.addSubMenu(back);
+        vector.addSubMenu(S57);
+        
+        raster.addSubMenu(back);
+        raster.addSubMenu(bsb);
+        raster.addSubMenu(geoTiff);
+        
+        images.addSubMenu(back);
+        images.addSubMenu(emodnet);
+        images.addSubMenu(gebcoImages);
+
+        dataCBathy.addSubMenu(back);
+        dataCBathy.addSubMenu(shomOn);
+        dataCBathy.addSubMenu(shomOff);
+        dataCBathy.addSubMenu(gebcoData);
+
+        dataCSedi.addSubMenu(back);
+        dataCSedi.addSubMenu(shom);
+        
+        dataCMagnet.addSubMenu(back);
+        dataCMagnet.addSubMenu(noaa);
+        
+        nav.addSubMenu(back);
+        nav.addSubMenu(vector);
+        nav.addSubMenu(raster);
+        
+        bathyCharts.addSubMenu(back);
+        bathyCharts.addSubMenu(images);
+        bathyCharts.addSubMenu(dataCBathy);
+        
+        sediment.addSubMenu(back);
+        sediment.addSubMenu(dataCSedi);
+        
+        magnet.addSubMenu(back);
+        magnet.addSubMenu(dataCMagnet);
+        
+        charts.addSubMenu(back);
+        charts.addSubMenu(nav);
+        charts.addSubMenu(bathyCharts);
+        charts.addSubMenu(sediment);
+        charts.addSubMenu(magnet);
+        
+        /**
+         * Tides Sub-menus
+         */
+        SimpleMenu currents = new SimpleMenu("currents.png", tide, this);
+        SimpleMenu waves = new SimpleMenu("waves.png", tide, this);
+        SimpleMenu tideSub = new SimpleMenu("tide.png", tide, this);
+
+        SimpleMenu modelCurrents = new SimpleMenu("model.png", currents, this);
+        
+        SimpleMenu modelWaves = new SimpleMenu("model.png", waves, this);
+        
+        SimpleMenu modelTide = new SimpleMenu("model.png", tideSub, this);
+        
+
+        SimpleMenu gribCurrent = new SimpleMenu("grib.png", modelCurrents, "Open Currents Grib", this);
+       
+        SimpleMenu gribWaves = new SimpleMenu("grib.png", modelWaves, "Open Waves Grib", this);
+        
+        SimpleMenu gribTide = new SimpleMenu("grib.png", modelTide, "Open Tide Grib", this);
+ 
+        modelCurrents.addSubMenu(back);
+        modelCurrents.addSubMenu(gribCurrent);
+        
+        modelWaves.addSubMenu(back);
+        modelWaves.addSubMenu(gribWaves);
+        
+        modelTide.addSubMenu(back);
+        modelTide.addSubMenu(gribTide);
+
+        currents.addSubMenu(back);
+        currents.addSubMenu(modelCurrents);
+
+        waves.addSubMenu(back);
+        waves.addSubMenu(modelWaves);
+        
+        tideSub.addSubMenu(back);
+        tideSub.addSubMenu(modelTide);
+        
+        tide.addSubMenu(back);
+        tide.addSubMenu(currents);
+        tide.addSubMenu(waves);
+        tide.addSubMenu(tideSub);
+        
+        /**
+         * Meteo Sub-menus
+         */
+        SimpleMenu filesMeteo = new SimpleMenu("files.png", meteo, this);
+        SimpleMenu sites = new SimpleMenu("sites.png", meteo, this);
+
+        SimpleMenu gribMeteo = new SimpleMenu("grib.png", filesMeteo, this);
+        SimpleMenu modelMeteo = new SimpleMenu("model.png", filesMeteo, this);
+        
+        SimpleMenu local = new SimpleMenu("local.png", sites, this);
+        
+        SimpleMenu wind = new SimpleMenu("wind.png", gribMeteo, "Open Wind Grib", this);
+        SimpleMenu pressure = new SimpleMenu("pressure.png", gribMeteo, "Open Pressure Grib", this);
+        
+        SimpleMenu dump = new SimpleMenu("dump.png", modelMeteo, "Dump Model", this);
+ 
+        SimpleMenu darkSky = new SimpleMenu("darkSky.png", local, "Dark Sky mode", this);
+        
+        local.addSubMenu(back);
+        local.addSubMenu(darkSky);
+        
+        modelMeteo.addSubMenu(back);
+        modelMeteo.addSubMenu(dump);
+        
+        gribMeteo.addSubMenu(back);
+        gribMeteo.addSubMenu(wind);
+        gribMeteo.addSubMenu(pressure);
+
+        filesMeteo.addSubMenu(back);
+        filesMeteo.addSubMenu(gribMeteo);
+        filesMeteo.addSubMenu(modelMeteo);
+
+        sites.addSubMenu(back);
+        sites.addSubMenu(local);
+
+        meteo.addSubMenu(back);
+        meteo.addSubMenu(filesMeteo);
+        meteo.addSubMenu(sites);
+        
+        /**
+         * Instruments Sub-menus
+         */
+        SimpleMenu ais = new SimpleMenu("ais.png", instr, this);
+        SimpleMenu gps = new SimpleMenu("gps.png", instr, this);
+        SimpleMenu compass = new SimpleMenu("compass.png", instr, this);
+        SimpleMenu bathyInstrument = new SimpleMenu("bathy.png", instr, this);
+        SimpleMenu time = new SimpleMenu("time.png", instr, this);
+
+        SimpleMenu aisRadarOn = new SimpleMenu("aisRadarOn.png", ais, "Enable AIS Radar", this);
+        SimpleMenu aisRadarOff = new SimpleMenu("aisRadarOff.png", ais, "Disable AIS Radar", this);
+        SimpleMenu aisPlotOn = new SimpleMenu("aisPlotOn.png", ais, "Enable AIS Plot", this);
+        SimpleMenu aisPlotOff = new SimpleMenu("aisPlotOff.png", ais, "Disable AIS Plot", this);
+        SimpleMenu aisLogOn = new SimpleMenu("aisLogOn.png", ais, "Enable AIS Log", this);
+        SimpleMenu aisLogOff = new SimpleMenu("aisLogOff.png", ais, "Disable AIS Log", this);
+        
+        SimpleMenu gpsPlotOn = new SimpleMenu("gpsPlotOn.png", ais, "Enable GPS Plot", this);
+        SimpleMenu gpsPlotOff = new SimpleMenu("gpsPlotOff.png", ais, "Disable GPS Plot", this);
+        SimpleMenu gpsPlotRouteOn = new SimpleMenu("gpsPlotWithRouteOn.png", ais, "Enable GPS Plot with Route", this);
+        SimpleMenu gpsPlotRouteOff = new SimpleMenu("gpsPlotWithRouteOff.png", ais, "Disable GPS Plot with Route", this);
+        SimpleMenu gpsTrackOn = new SimpleMenu("gpsTrackOn.png", ais, "Enable GPS Tracking", this);
+        SimpleMenu gpsTrackOff = new SimpleMenu("gpsTrackOff.png", ais, "Disable GPS Tracking", this);
+        SimpleMenu gpsLogOn = new SimpleMenu("gpsLogOn.png", ais, "Enable GPS Log", this);
+        SimpleMenu gpsLogOff = new SimpleMenu("gpsLogOff.png", ais, "Disable GPS Log", this);
+        
+        SimpleMenu compassSub = new SimpleMenu("compass.png", compass, "Display Compass", this);
+        
+        SimpleMenu sonarOn = new SimpleMenu("sonarOn.png", bathyInstrument, "Enable Sonar", this);
+        
+        SimpleMenu clocks = new SimpleMenu("clocks.png", time, "Display Clocks", this);
+        
+        ais.addSubMenu(back);
+        ais.addSubMenu(aisRadarOn);
+        ais.addSubMenu(aisRadarOff);
+        ais.addSubMenu(aisPlotOn);
+        ais.addSubMenu(aisPlotOff);
+        ais.addSubMenu(aisLogOn);
+        ais.addSubMenu(aisLogOff);
+        
+        gps.addSubMenu(back);
+        gps.addSubMenu(gpsPlotOn);
+        gps.addSubMenu(gpsPlotOff);
+        gps.addSubMenu(gpsPlotRouteOn);
+        gps.addSubMenu(gpsPlotRouteOff);
+        gps.addSubMenu(gpsTrackOn);
+        gps.addSubMenu(gpsTrackOff);
+        gps.addSubMenu(gpsLogOn);
+        gps.addSubMenu(gpsLogOff);
+        
+        compass.addSubMenu(back);
+        compass.addSubMenu(compassSub);
+        
+        bathyInstrument.addSubMenu(back);
+        bathyInstrument.addSubMenu(sonarOn);
+        
+        time.addSubMenu(back);
+        time.addSubMenu(clocks);
+
+        instr.addSubMenu(back);
+        instr.addSubMenu(ais);
+        instr.addSubMenu(gps);
+        instr.addSubMenu(compass);
+        instr.addSubMenu(bathyInstrument);
+        instr.addSubMenu(time);
+        
+        /**
+         * Navigation Sub-menus
+         */
+        SimpleMenu navigationSub = new SimpleMenu("navigationSub.png", navigation, this);
+
+        SimpleMenu tracks = new SimpleMenu("tracks.png", navigationSub, this);
+        SimpleMenu routes = new SimpleMenu("routes.png", navigationSub, this);
+        
+        SimpleMenu gpx = new SimpleMenu("gpx.png", tracks, "Open GPX File", this);
+        SimpleMenu kmlTracks = new SimpleMenu("kml.png", tracks, "Open KML File", this);
+
+        SimpleMenu measureTools = new SimpleMenu("measuretools.png", routes, "Open Measure Tools", this);
+        SimpleMenu routeEditor = new SimpleMenu("routeeditor.png", routes, "Open Route Editor", this);
+        SimpleMenu routeDataEditor = new SimpleMenu("routedataeditor.png", routes, "Open Route Data Editor", this);
+        SimpleMenu routePhotoEditor = new SimpleMenu("routephotoeditor.png", routes, "Open Route Photo Editor", this);
+        
+        tracks.addSubMenu(back);
+        tracks.addSubMenu(gpx);
+        tracks.addSubMenu(kmlTracks);
+        
+        routes.addSubMenu(back);
+        routes.addSubMenu(measureTools);
+        routes.addSubMenu(routeEditor);
+        routes.addSubMenu(routeDataEditor);
+        routes.addSubMenu(routePhotoEditor);
+        
+        navigationSub.addSubMenu(back);
+        navigationSub.addSubMenu(tracks);
+        navigationSub.addSubMenu(routes);
+        
+        navigation.addSubMenu(back);
+        navigation.addSubMenu(navigationSub);
+        
+        /**
+         * Book Sub-menus
+         */
+        SimpleMenu logBook = new SimpleMenu("logbook.png", book, "Work In Progress", this);
+        SimpleMenu listLights = new SimpleMenu("lightsbook.png", book, this);
+        SimpleMenu sailingDirections = new SimpleMenu("sailingbook.png", book, this);
+        
+        SimpleMenu imagesLights = new SimpleMenu("images.png", listLights, this);
+
+        SimpleMenu worldWide = new SimpleMenu("worldwide_sailing_directions.png", sailingDirections, "Work In Progress", this);
+        SimpleMenu IrelandSouthernHarbours = new SimpleMenu("IrelandSouth_sailing_directions.png", sailingDirections, "Work In Progress", this);
+        SimpleMenu shomBook = new SimpleMenu("shom.png", sailingDirections, this);
+        
+        SimpleMenu emodLight = new SimpleMenu("emodnet.png", imagesLights, this);
+
+        SimpleMenu viewer = new SimpleMenu("viewer.png", shomBook, "Open Viewer", this);
+        SimpleMenu editor = new SimpleMenu("editor.png", shomBook, "Open Editor", this);
+        
+        shomBook.addSubMenu(back);
+        shomBook.addSubMenu(viewer);
+        shomBook.addSubMenu(editor);
+        
+        imagesLights.addSubMenu(back);
+        imagesLights.addSubMenu(emodLight);
+        
+        sailingDirections.addSubMenu(back);
+        sailingDirections.addSubMenu(worldWide);
+        sailingDirections.addSubMenu(IrelandSouthernHarbours);
+        sailingDirections.addSubMenu(shomBook);
+        
+        listLights.addSubMenu(back);
+        listLights.addSubMenu(imagesLights);
+        
+        book.addSubMenu(back);
+        book.addSubMenu(logBook);
+        book.addSubMenu(listLights);
+        book.addSubMenu(sailingDirections);
+        
+        /**
+         * Building Main Menu list
+         */
         this.menuList.add(io);
         this.menuList.add(tools);
         this.menuList.add(charts);
         this.menuList.add(tide);
         this.menuList.add(meteo);
         this.menuList.add(instr);
-        this.menuList.add(nav);
+        this.menuList.add(navigation);
         this.menuList.add(book);
+        this.currParent = null;
     }
 
-        
-    public void displayMessage(String msg){
+    public void displayMessage(String msg) {
         this.response.setText(msg);
     }
+
     /*
     public void displayImage(String msg){
         System.out.println(msg);
@@ -361,84 +709,117 @@ public class PrimaryPresenter {
         Image image = new Image(url);
         this.img.setImage(image);
     } */
-    
-    public void handleCmd(String cmd){
-        
-        switch(cmd){
-            case "openMenu":
-                
-                menuList.forEach( (menu) -> {ImageView tmp = this.menuHolder.get(menuList.indexOf(menu)); 
-                                             tmp.setImage(menu.getImage());
-                                             tmp.setVisible(true);
-                });
+    public void handleCmd(String cmd) {
 
-                this.currIndex = 0;
-                this.maxIndex = menuList.size()-1;
-                this.currMenu = menuList.get(currIndex);
-                
-                selected();  
+        switch (cmd) {
+            case "openMenu":
+                initOpen();
                 break;
-                
+
             case "closeMenu":
                 this.menuHolder.get(this.currIndex).setEffect(null);
                 this.currIndex = 0;
                 this.maxIndex = 0;
                 this.currMenu = null;
-                
-                menuHolder.forEach( (menuholder) -> ((ImageView)menuholder).setVisible(false) );
+
+                menuHolder.forEach((menuholder) -> ((ImageView) menuholder).setVisible(false));
                 break;
-            
+
             case "selectMenu":
-                if(currMenu.getAction() != null)
-                    displayMessage(currMenu.getAction());
-                else
+                if (currMenu.getAction() != null) {
+                    if (currMenu.getAction().equals("GoBack")) {
+                        if (this.currParent.getParent() == null) {
+                            initOpen();
+                        } else {
+                            openMenu();
+                        }
+                    } else {
+                        displayMessage(currMenu.getAction());
+                    }
+                } else {
                     openMenu();
+                }
                 break;
-            
+
             case "leftMenu":
                 this.menuHolder.get(this.currIndex).setEffect(null);
-                this.currIndex = (this.currIndex == 0)?(this.maxIndex):(this.currIndex -1);
-                if(this.currMenu.getParent() == null)
+                this.currIndex = (this.currIndex == 0) ? (this.maxIndex) : (this.currIndex - 1);
+                if (this.currParent == null) {
                     this.currMenu = this.menuList.get(this.currIndex);
-                else
-                    this.currMenu = this.currMenu.getParent().getSubMenu().get(this.currIndex);
-                
+                } else {
+                    this.currMenu = this.currParent.getSubMenu().get(this.currIndex);
+                }
+
                 selected();
                 break;
-                
+
             case "rightMenu":
                 this.menuHolder.get(this.currIndex).setEffect(null);
-                this.currIndex  = (this.currIndex  == this.maxIndex)?(0):(this.currIndex +1);
-                if(this.currMenu.getParent() == null)
+                this.currIndex = (this.currIndex == this.maxIndex) ? (0) : (this.currIndex + 1);
+                if (this.currParent == null) {
                     this.currMenu = this.menuList.get(this.currIndex);
-                else
-                    this.currMenu = this.currMenu.getParent().getSubMenu().get(this.currIndex);
-                
+                } else {
+                    this.currMenu = this.currParent.getSubMenu().get(this.currIndex);
+                }
+
                 selected();
                 break;
-            
+
             default:
                 break;
         }
     }
-    
-    private void openMenu(){
-        menuHolder.forEach( (menuholder) -> ((ImageView)menuholder).setVisible(false) );
-        this.currMenu.getSubMenu().forEach( (menu) -> {ImageView tmp = this.menuHolder.get(this.currMenu.getSubMenu().indexOf(menu)); 
-                                             tmp.setImage(menu.getImage());
-                                             tmp.setVisible(true);
+
+    private void initOpen() {
+        menuList.forEach((menu) -> {
+            ImageView tmp = this.menuHolder.get(menuList.indexOf(menu));
+            tmp.setImage(menu.getImage());
+            tmp.setEffect(null);
+            tmp.setVisible(true);
         });
 
+        this.currParent = null;
         this.currIndex = 0;
-        this.maxIndex = this.currMenu.getSubMenu().size()-1;
-        this.currMenu = this.currMenu.getSubMenu().get(currIndex);
-                
-        selected();  
+        this.maxIndex = menuList.size() - 1;
+        this.currMenu = menuList.get(currIndex);
+
+        selected();
     }
-    
-    private void selected(){
+
+    private void openMenu() {
+        this.currIndex = 0;
+        
+        if (this.currMenu.getAction() != null && this.currMenu.getAction().equals("GoBack")) {
+            this.currParent = this.currParent.getParent();
+            
+            menuHolder.forEach((menuholder) -> ((ImageView) menuholder).setVisible(false));
+            this.currParent.getSubMenu().forEach((menu) -> {
+                ImageView tmp = this.menuHolder.get(this.currParent.getSubMenu().indexOf(menu));
+                tmp.setImage(menu.getImage());
+                tmp.setEffect(null);
+                tmp.setVisible(true);
+            });
+            
+            this.maxIndex = this.currParent.getSubMenu().size() - 1;
+            this.currMenu = this.currParent.getSubMenu().get(currIndex);
+        } else {
+            menuHolder.forEach((menuholder) -> ((ImageView) menuholder).setVisible(false));
+            this.currMenu.getSubMenu().forEach((menu) -> {
+                ImageView tmp = this.menuHolder.get(this.currMenu.getSubMenu().indexOf(menu));
+                tmp.setImage(menu.getImage());
+                tmp.setEffect(null);
+                tmp.setVisible(true);
+            });
+            this.currParent = this.currMenu;
+            this.maxIndex = this.currMenu.getSubMenu().size() - 1;
+            this.currMenu = this.currMenu.getSubMenu().get(currIndex);
+        }
+        selected();
+    }
+
+    private void selected() {
         int depth = 50; //Setting the uniform variable for the glow width and height
-        DropShadow borderGlow= new DropShadow();
+        DropShadow borderGlow = new DropShadow();
         borderGlow.setOffsetY(0f);
         borderGlow.setOffsetX(0f);
         borderGlow.setColor(Color.GRAY);
@@ -446,75 +827,4 @@ public class PrimaryPresenter {
         borderGlow.setHeight(depth);
         this.menuHolder.get(this.currIndex).setEffect(borderGlow);
     }
-    
-    private class SimpleMenu{
-        private Image image;
-        private SimpleMenu parent;
-        private List<SimpleMenu> subMenu;
-        private String action;
-        
-        public SimpleMenu(){
-            this.image = null;
-            this.parent = null;
-            this.subMenu = null;
-            this.action = "No actions Yet";
-        }
-        
-        public SimpleMenu(String imageName){
-            this.image = new Image(IMGREP + imageName);
-            this.parent = null;
-            this.subMenu = null;
-            this.action = "No actions Yet";
-        }
-        
-        public SimpleMenu(String imageName, SimpleMenu parent){
-            this.image = new Image(IMGREP + imageName);
-            this.parent = parent;
-            this.subMenu = null;
-            this.action = "No actions Yet";
-        }
-
-        public Image getImage() {
-            return image;
-        }
-
-        public void setImage(String imageName) {
-            this.image = new Image(IMGREP + imageName);
-        }
-
-        public SimpleMenu getParent() {
-            return parent;
-        }
-
-        public void setParent(SimpleMenu parent) {
-            this.parent = parent;
-        }
-
-        public List<SimpleMenu> getSubMenu() {
-            return subMenu;
-        }
-
-        public void setSubMenu(List<SimpleMenu> subMenu) {
-            if(action != null)
-                action = null;
-            this.subMenu = subMenu;
-        }
-        
-        public void addSubMenu(SimpleMenu menu){
-            if(action != null)
-                action = null;
-            if(this.subMenu == null)
-                this.subMenu = new ArrayList<SimpleMenu>();
-            this.subMenu.add(menu);
-        }
-
-        public String getAction() {
-            return action;
-        }
-
-        public void setAction(String action) {
-            this.action = action;
-        }
-    }
-    
 }
