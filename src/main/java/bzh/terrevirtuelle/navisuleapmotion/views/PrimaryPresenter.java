@@ -125,9 +125,10 @@ public class PrimaryPresenter {
     int port = 8899;
     private Server server;
     private boolean isServerRunning = false;
+    private boolean isMenuOpen = false;
     private final String IMGREP = "bzh/terrevirtuelle/navisuleapmotion/views/img/";
 
-    private List<ImageView> menuHolder;
+    private List<ImageView> menuHolder = null;
     private List<SimpleMenu> menuList;
 
     /**
@@ -151,21 +152,6 @@ public class PrimaryPresenter {
             }
         });
 
-        menuHolder = new ArrayList<>();
-        menuHolder.add(this.menu1);
-        menuHolder.add(this.menu2);
-        menuHolder.add(this.menu3);
-        menuHolder.add(this.menu4);
-        menuHolder.add(this.menu5);
-        menuHolder.add(this.menu6);
-        menuHolder.add(this.menu7);
-        menuHolder.add(this.menu8);
-        menuHolder.add(this.menu9);
-        menuHolder.add(this.menu10);
-
-        menuHolder.forEach((item) -> ((ImageView) item).setVisible(false));
-        
-        this.menuList = new ArrayList<>();
         initMenu();
     }
 
@@ -292,9 +278,26 @@ public class PrimaryPresenter {
     }
 
     private void initMenu() {
+        menuHolder = new ArrayList<>();
+        menuHolder.add(this.menu1);
+        menuHolder.add(this.menu2);
+        menuHolder.add(this.menu3);
+        menuHolder.add(this.menu4);
+        menuHolder.add(this.menu5);
+        menuHolder.add(this.menu6);
+        menuHolder.add(this.menu7);
+        menuHolder.add(this.menu8);
+        menuHolder.add(this.menu9);
+        menuHolder.add(this.menu10);
+
+        for(ImageView item : this.menuHolder){
+            item.setVisible(false);
+        }
+        
+        this.menuList = new ArrayList<>();
         /**
          * Main Menus
-         */
+         */   
         SimpleMenu io = new SimpleMenu("system.png", this);
         SimpleMenu tools = new SimpleMenu("tools.png", this);
         SimpleMenu charts = new SimpleMenu("charts.png", this);
@@ -710,22 +713,30 @@ public class PrimaryPresenter {
         this.img.setImage(image);
     } */
     public void handleCmd(String cmd) {
-
         switch (cmd) {
             case "openMenu":
+                if(isMenuOpen)
+                    break;
                 initOpen();
+                this.isMenuOpen = true;
                 break;
 
             case "closeMenu":
+                if(!isMenuOpen)
+                    break;
                 this.menuHolder.get(this.currIndex).setEffect(null);
                 this.currIndex = 0;
                 this.maxIndex = 0;
                 this.currMenu = null;
-
-                menuHolder.forEach((menuholder) -> ((ImageView) menuholder).setVisible(false));
+                this.isMenuOpen = false;
+                for(ImageView item : this.menuHolder)
+                    item.setVisible(false);
+                
                 break;
 
             case "selectMenu":
+                if(!isMenuOpen)
+                    break;
                 if (currMenu.getAction() != null) {
                     if (currMenu.getAction().equals("GoBack")) {
                         if (this.currParent.getParent() == null) {
@@ -742,6 +753,8 @@ public class PrimaryPresenter {
                 break;
 
             case "leftMenu":
+                if(!isMenuOpen)
+                    break;
                 this.menuHolder.get(this.currIndex).setEffect(null);
                 this.currIndex = (this.currIndex == 0) ? (this.maxIndex) : (this.currIndex - 1);
                 if (this.currParent == null) {
@@ -754,6 +767,8 @@ public class PrimaryPresenter {
                 break;
 
             case "rightMenu":
+                if(!isMenuOpen)
+                    break;
                 this.menuHolder.get(this.currIndex).setEffect(null);
                 this.currIndex = (this.currIndex == this.maxIndex) ? (0) : (this.currIndex + 1);
                 if (this.currParent == null) {
@@ -771,12 +786,12 @@ public class PrimaryPresenter {
     }
 
     private void initOpen() {
-        menuList.forEach((menu) -> {
+        for(SimpleMenu menu : this.menuList){
             ImageView tmp = this.menuHolder.get(menuList.indexOf(menu));
             tmp.setImage(menu.getImage());
             tmp.setEffect(null);
             tmp.setVisible(true);
-        });
+        }
 
         this.currParent = null;
         this.currIndex = 0;
@@ -792,24 +807,29 @@ public class PrimaryPresenter {
         if (this.currMenu.getAction() != null && this.currMenu.getAction().equals("GoBack")) {
             this.currParent = this.currParent.getParent();
             
-            menuHolder.forEach((menuholder) -> ((ImageView) menuholder).setVisible(false));
-            this.currParent.getSubMenu().forEach((menu) -> {
+            for(ImageView menuholder : this.menuHolder)
+                menuholder.setVisible(false);
+            
+            for(SimpleMenu menu : this.currParent.getSubMenu()){
                 ImageView tmp = this.menuHolder.get(this.currParent.getSubMenu().indexOf(menu));
                 tmp.setImage(menu.getImage());
                 tmp.setEffect(null);
                 tmp.setVisible(true);
-            });
+            }
             
             this.maxIndex = this.currParent.getSubMenu().size() - 1;
             this.currMenu = this.currParent.getSubMenu().get(currIndex);
         } else {
-            menuHolder.forEach((menuholder) -> ((ImageView) menuholder).setVisible(false));
-            this.currMenu.getSubMenu().forEach((menu) -> {
+            for(ImageView menuholder : this.menuHolder)
+                menuholder.setVisible(false);
+            
+            for(SimpleMenu menu : this.currMenu.getSubMenu()){
                 ImageView tmp = this.menuHolder.get(this.currMenu.getSubMenu().indexOf(menu));
                 tmp.setImage(menu.getImage());
                 tmp.setEffect(null);
                 tmp.setVisible(true);
-            });
+            }
+            
             this.currParent = this.currMenu;
             this.maxIndex = this.currMenu.getSubMenu().size() - 1;
             this.currMenu = this.currMenu.getSubMenu().get(currIndex);
