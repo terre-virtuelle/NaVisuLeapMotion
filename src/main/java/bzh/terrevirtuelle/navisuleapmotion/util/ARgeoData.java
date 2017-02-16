@@ -52,12 +52,25 @@ public class ARgeoData {
         this.name = name;
     }
 
+    /**
+     *
+     * @param lat The latitude
+     * @param lon The longitude
+     * @param imageAddress The value of imageAddress
+     */
     public ARgeoData(double lat, double lon, String imageAddress) {
         this.lat = lat;
         this.lon = lon;
         this.imageAddress = imageAddress;
     }
 
+    /**
+     *
+     * @param lat The latitude
+     * @param lon The longitude
+     * @param imageAddress The value of imageAddress
+     * @param name The Name
+     */
     public ARgeoData(double lat, double lon, String imageAddress, String name) {
         this.lat = lat;
         this.lon = lon;
@@ -65,6 +78,14 @@ public class ARgeoData {
         this.name = name;
     }
 
+    /**
+     *
+     * @param lat The latitude
+     * @param lon The longitude
+     * @param imageAddress The value of imageAddress
+     * @param name The Name
+     * @param type The Type
+     */
     public ARgeoData(double lat, double lon, String imageAddress, String name, String type) {
         this.lat = lat;
         this.lon = lon;
@@ -73,6 +94,9 @@ public class ARgeoData {
         this.type = type;
     }
 
+    /**
+     * Default constructor
+     */
     public ARgeoData() {
     }    
     
@@ -95,10 +119,20 @@ public class ARgeoData {
         this.imageAddress = imageAddress;
     }
 
+    /**
+     * Gets the Type
+     * 
+     * @return The type
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * Sets the Type value
+     * 
+     * @param type the new value of Type
+     */
     public void setType(String type) {
         this.type = type;
     }

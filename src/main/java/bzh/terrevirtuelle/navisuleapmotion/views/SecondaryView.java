@@ -29,10 +29,18 @@ public class SecondaryView {
 
     private final String name;
 
+    /**
+     *
+     * @param name
+     */
     public SecondaryView(String name) {
         this.name = name;
     }
     
+    /**
+     *
+     * @return
+     */
     public View getView() {
         try {
             View view = FXMLLoader.load(SecondaryView.class.getResource("secondary.fxml"));

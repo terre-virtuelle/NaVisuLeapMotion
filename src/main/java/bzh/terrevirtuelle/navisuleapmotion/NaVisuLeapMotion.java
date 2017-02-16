@@ -33,9 +33,24 @@ import javafx.stage.Stage;
  */
 public class NaVisuLeapMotion extends MobileApplication {
 
+    /**
+     *
+     */
     public static final String PRIMARY_VIEW = HOME_VIEW;
+
+    /**
+     *
+     */
     public static final String SECONDARY_VIEW = "Secondary View";
+
+    /**
+     *
+     */
     public static final String MENU_LAYER = "Side Menu";
+
+    /**
+     *
+     */
     public static WSClient WSC;
     
     @Override
@@ -45,6 +60,10 @@ public class NaVisuLeapMotion extends MobileApplication {
         addLayerFactory(MENU_LAYER, () -> new SidePopupView(new DrawerManager().getDrawer()));
     }
 
+    /**
+     *
+     * @param scene
+     */
     @Override
     public void postInit(Scene scene) {
         Swatch.BLUE.assignTo(scene);

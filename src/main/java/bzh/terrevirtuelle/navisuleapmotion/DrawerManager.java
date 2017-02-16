@@ -41,6 +41,9 @@ public class DrawerManager {
 
     private final NavigationDrawer drawer;
 
+    /**
+     *
+     */
     public DrawerManager() {
         this.drawer = new NavigationDrawer();
         
@@ -79,6 +82,10 @@ public class DrawerManager {
         }
     }
     
+    /**
+     *
+     * @return
+     */
     public NavigationDrawer getDrawer() {
         return drawer;
     }

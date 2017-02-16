@@ -29,10 +29,18 @@ public class PrimaryView {
 
     private final String name;
 
+    /**
+     *
+     * @param name
+     */
     public PrimaryView(String name) {
         this.name = name;
     }
     
+    /**
+     *
+     * @return
+     */
     public View getView() {
         try {
             View view = FXMLLoader.load(PrimaryView.class.getResource("primary.fxml"));

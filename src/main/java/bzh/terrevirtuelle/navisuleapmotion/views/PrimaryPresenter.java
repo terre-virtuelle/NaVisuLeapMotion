@@ -26,8 +26,8 @@ import static bzh.terrevirtuelle.navisuleapmotion.NaVisuLeapMotion.WSC;
 import bzh.terrevirtuelle.navisuleapmotion.server.Server;
 import bzh.terrevirtuelle.navisuleapmotion.util.ARgeoData;
 import bzh.terrevirtuelle.navisuleapmotion.util.SimpleMenu;
-import bzh.terrevirtuelle.navisuleapmotion.util.Toast;
 import bzh.terrevirtuelle.navisuleapmotion.util.WSClient;
+import com.gluonhq.charm.glisten.control.Toast;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
@@ -45,20 +45,22 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 import javax.naming.TimeLimitExceededException;
 import org.java_websocket.drafts.Draft_10;
 
 /**
- *
+ * PrimaryPresenter class, represents the main page of the app
+ * 
  * @author Di Falco Nicola
  */
 public class PrimaryPresenter {
 
+    /**
+     * Regex expression for an IPv4 address
+     */
     private final String IPADDRESS_PATTERN
             = "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\."
             + "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\."
@@ -122,24 +124,61 @@ public class PrimaryPresenter {
     @FXML
     private ImageView menu10;
 
+    /**
+     * Port used for the Server
+     */
     int port = 8899;
+    
+    /**
+     * Server instance
+     */
     private Server server;
+    
+    /**
+     * Is the server running
+     */
     private boolean isServerRunning = false;
+    
+    /**
+     * Is the menu open
+     */
     private boolean isMenuOpen = false;
-    private final String IMGREP = "bzh/terrevirtuelle/navisuleapmotion/views/img/";
-
+    
+    /**
+     * List of ImageView which will hold images of the current opened menu
+     */
     private List<ImageView> menuHolder = null;
+    
+    /**
+     * List of all root menus (with no parents)
+     */
     private List<SimpleMenu> menuList;
 
     /**
-     * Used Mainly for back action, as Back menu doesn't have any parent (reused)
+     * Used Mainly for back action, as Back menu doesn't have any parent
      */
     private SimpleMenu currParent;
+    
+    /**
+     * Current selected Menu
+     */
     private SimpleMenu currMenu;
     
+    /**
+     * Current index of the Menu. ie this.currParent.getSubMenu().get(currIndex)
+     */
     private int currIndex;
+    
+    /**
+     * Max index for the current Menu list. ie 
+     *  maxIndex = this.currParent.getSubMenu().size()-1
+     */
     private int maxIndex;
 
+    /**
+     * Initialization, display is created and the menuList and menuHolder are
+     * instanciated
+     */
     public void initialize() {
         primary.showingProperty().addListener((obs, oldValue, newValue) -> {
             if (newValue) {
@@ -155,6 +194,14 @@ public class PrimaryPresenter {
         initMenu();
     }
 
+    /**
+     * Action performed on click on button "Connect to NaVisu". The IP field is
+     * checked (correct format), the WSClient will be instanciated according to
+     * the provided IPv4 (empty is localhost).
+     * Once done, all buttons are enabled
+     * 
+     * @param e ActionEvent that have triggered this function
+     */
     @FXML
     void buttonClick(ActionEvent e) {
         Pattern pattern = Pattern.compile(IPADDRESS_PATTERN);
@@ -170,11 +217,8 @@ public class PrimaryPresenter {
             if (matcher.matches()) {
                 initWSC(ip.getText());
             } else {
-                String toastMsg = "Wrong IP format";
-                int toastMsgTime = 2000; //3.5 seconds
-                int fadeInTime = 500; //0.5 seconds
-                int fadeOutTime = 500; //0.5 seconds
-                Toast.makeText((Stage) primary.getScene().getWindow(), toastMsg, toastMsgTime, fadeInTime, fadeOutTime);
+                Toast toast = new Toast("Wrong IP format", Toast.LENGTH_SHORT);
+                toast.show();
                 return;
             }
 
@@ -195,22 +239,24 @@ public class PrimaryPresenter {
         cServer.setDisable(false);
     }
 
+    /**
+     * Action performed on click on button "Route 0". A request to the NaVisu
+     * server will be performed through the WSClient
+     * 
+     * @param e ActionEvent that have triggered this function
+     */
     @FXML
     void buttonRoute0(ActionEvent e) {
         try {
             WSC.ws_request();
         } catch (NotYetConnectedException ex) {
             String toastMsg = "Connection is not initialized (maybe check IP)";
-            int toastMsgTime = 2000; //3.5 seconds
-            int fadeInTime = 500; //0.5 seconds
-            int fadeOutTime = 500; //0.5 seconds
-            Toast.makeText((Stage) primary.getScene().getWindow(), toastMsg, toastMsgTime, fadeInTime, fadeOutTime);
+            Toast toast = new Toast(toastMsg, Toast.LENGTH_SHORT);
+            toast.show();
             return;
         } catch (TimeLimitExceededException ex) {
-            int toastMsgTime = 2000; //3.5 seconds
-            int fadeInTime = 500; //0.5 seconds
-            int fadeOutTime = 500; //0.5 seconds
-            Toast.makeText((Stage) primary.getScene().getWindow(), ex.getExplanation(), toastMsgTime, fadeInTime, fadeOutTime);
+            Toast toast = new Toast(ex.getExplanation(), Toast.LENGTH_SHORT);
+            toast.show();
             return;
         }
         ARgeoData data2 = WSC.getStatic_ARgeoDataArray().get(0);
@@ -220,6 +266,14 @@ public class PrimaryPresenter {
         nameval.setText(data2.getName());
     }
 
+    /**
+     * Action performed on click on button "Deploy (close) Server". The server 
+     * will deploy/stop according to its current state. If it will be deployed,
+     * once done, the WSClient will send its IP to NaVisu server so that a NaVisu
+     * client can connect to the newly deployed RA server
+     * 
+     * @param e ActionEvent that have triggered this function
+     */
     @FXML
     void serverClick(ActionEvent e) {
         if (isServerRunning) {
@@ -249,6 +303,9 @@ public class PrimaryPresenter {
         }
     }
 
+    /**
+     * Initialization of WSClient (it will try to connect to a localhost server)
+     */
     public static void initWSC() {
         Thread thread0 = new Thread((Runnable) () -> {
             System.out.println("Current Time =" + new Date());
@@ -263,6 +320,12 @@ public class PrimaryPresenter {
         thread0.start();
     }
 
+    /**
+     * Initialization of WSClient (it will try to connect to the server whose IP
+     * has been provided)
+     * 
+     * @param ip The server's IP
+     */
     public static void initWSC(String ip) {
         Thread thread0 = new Thread((Runnable) () -> {
             System.out.println("Current Time =" + new Date());
@@ -277,6 +340,9 @@ public class PrimaryPresenter {
         thread0.start();
     }
 
+    /**
+     * Initialization of menuList
+     */
     private void initMenu() {
         menuHolder = new ArrayList<>();
         menuHolder.add(this.menu1);
@@ -700,20 +766,27 @@ public class PrimaryPresenter {
         this.currParent = null;
     }
 
+    /**
+     * Displays the provided message on a field in the app
+     * 
+     * @param msg The message to display
+     */
     public void displayMessage(String msg) {
         this.response.setText(msg);
     }
 
-    /*
-    public void displayImage(String msg){
-        System.out.println(msg);
-        int num = Integer.decode(msg);
-        String url = IMGREP + ((num % 2 == 1)?"1.png":"2.png");
-        Image image = new Image(url);
-        this.img.setImage(image);
-    } */
+    /**
+     * Actions to take according to the command given. For the moment, 5 actions
+     * are recognized: openMenu, closeMenu, selectMenu, leftMenu, rightMenu
+     * 
+     * @param cmd The command to process
+     */
     public void handleCmd(String cmd) {
         switch (cmd) {
+            /**
+             * If the menu is already open, do nothing
+             * Else, open the menu (Root Menu will be displayed)
+             */
             case "openMenu":
                 if(isMenuOpen)
                     break;
@@ -721,6 +794,11 @@ public class PrimaryPresenter {
                 this.isMenuOpen = true;
                 break;
 
+            /**
+             * If the menu is alrady closed, do nothing
+             * Else, deselect the current menu, close the menu (visible = false)
+             * and all other attributes are returned to a default state
+             */
             case "closeMenu":
                 if(!isMenuOpen)
                     break;
@@ -734,6 +812,16 @@ public class PrimaryPresenter {
                 
                 break;
 
+            /**
+             * If the menu is closed, do nothing
+             * Else:
+             *  -If the menu has an action:
+             *      -If it's "GoBack", it will use the currParent attribute to 
+             *       display the parent menu
+             *      -Else, for the moment, display a message corresponding to
+             *       to the action
+             *  -Else: it will open the sub-Menu of the selected Menu
+             */
             case "selectMenu":
                 if(!isMenuOpen)
                     break;
@@ -752,6 +840,10 @@ public class PrimaryPresenter {
                 }
                 break;
 
+            /**
+             * Will shift the selection to the left: index will be shifted, and
+             * the same goes for the selection effect
+             */
             case "leftMenu":
                 if(!isMenuOpen)
                     break;
@@ -766,6 +858,9 @@ public class PrimaryPresenter {
                 selected();
                 break;
 
+            /**
+             * Same than leftMenu, but to the right
+             */
             case "rightMenu":
                 if(!isMenuOpen)
                     break;
@@ -780,11 +875,17 @@ public class PrimaryPresenter {
                 selected();
                 break;
 
+            /**
+             * Else, not handled action, so it does nothing
+             */
             default:
                 break;
         }
     }
 
+    /**
+     * Opens Root Menus and selects the 1st one
+     */
     private void initOpen() {
         for(SimpleMenu menu : this.menuList){
             ImageView tmp = this.menuHolder.get(menuList.indexOf(menu));
@@ -801,6 +902,9 @@ public class PrimaryPresenter {
         selected();
     }
 
+    /**
+     * Opens the sub-menus of the current selected menu
+     */
     private void openMenu() {
         this.currIndex = 0;
         
@@ -837,6 +941,9 @@ public class PrimaryPresenter {
         selected();
     }
 
+    /**
+     * Adds a gray halo to the current selected menu
+     */
     private void selected() {
         int depth = 50; //Setting the uniform variable for the glow width and height
         DropShadow borderGlow = new DropShadow();

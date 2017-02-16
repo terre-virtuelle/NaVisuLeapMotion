@@ -19,8 +19,6 @@ package bzh.terrevirtuelle.navisuleapmotion.util;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -41,26 +39,55 @@ public class ArCommand {
     
     private String arg;
 
+    /**
+     * Default Constructor
+     */
     public ArCommand() {
     }
 
+    /**
+     * Main Constructor
+     * 
+     * @param cmd The command
+     * @param arg The command's argument
+     */
     public ArCommand(String cmd, String arg) {
         this.cmd = cmd;
         this.arg = arg;
     }
 
+    /**
+     * Gets the command
+     * 
+     * @return The command
+     */
     public String getCmd() {
         return cmd;
     }
 
+    /**
+     * Sets the command
+     * 
+     * @param cmd the new Command value
+     */
     public void setCmd(String cmd) {
         this.cmd = cmd;
     }
 
+    /**
+     * Gets the command's argument
+     * 
+     * @return the argument's value
+     */
     public String getArg() {
         return arg;
     }
 
+    /**
+     * Sets the argument
+     * 
+     * @param arg the new argument value
+     */
     public void setArg(String arg) {
         this.arg = arg;
     }

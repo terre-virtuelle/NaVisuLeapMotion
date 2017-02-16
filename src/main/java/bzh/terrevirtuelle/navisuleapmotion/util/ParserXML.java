@@ -25,7 +25,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * XML Custom Parser. Used to replace JAXB (not working on Android)
+ * 
  * @author JP M
  */
 public class ParserXML {
@@ -33,9 +34,17 @@ public class ParserXML {
     Map<String, List<List<String>>> entitiesMap;
     private String xmlFile;
 
+    /**
+     *  Default Constructor
+     */
     public ParserXML() {
     }
 
+    /**
+     * Main Constructor
+     * 
+     * @param xmlFile The XML-formatted String to unmarshall
+     */
     public ParserXML(String xmlFile) {
         entitiesMap = new HashMap<>();
         entitiesMap.put("bcncar", new ArrayList<List<String>>());
@@ -57,27 +66,43 @@ public class ParserXML {
         this.xmlFile = xmlFile;
     }
 
+    /**
+     * Tries to gets values between the specified Tag. If there is no such tag,
+     * an empty list is returned
+     * 
+     * @param tag The tag (&lt;tag&gt;...&lt;/tag&gt;) to search
+     * @param str2SearchIn The string is XML format to search
+     * @return If the tag exists, a list of all of their content, else, an empty list
+     */
     public List<String> findInnerTagText(String tag, String str2SearchIn){
         List<String> tagValues = new ArrayList<>();
         Matcher matcher = Pattern.compile("<"+tag+">(.+?)</"+tag+">").matcher(str2SearchIn);
         while (matcher.find()) {
-            //System.out.println("Pattern<"+tag+"/>: "+matcher.group(1));
             tagValues.add(matcher.group(1) );
         }
         return tagValues;
     }
     
+    /**
+     * Process the unmarshalling
+     * 
+     * @return The new updated map (containing tags and list of values)
+     */
     public Map<String, List<List<String>>> process() {
 
         for (String type : entitiesMap.keySet()) {
-            
-            //System.out.println("TYPE =  "+type);
             List<String> tagValues = findInnerTagText(type, xmlFile);
             entitiesMap.get(type).add(tagValues);
         }
         return entitiesMap;
     }
 
+    /**
+     * Gets the Latitude
+     * 
+     * @param xmlContainer The XML-formatted string to analyze
+     * @return The Latitude
+     */
     private double getLat(String xmlContainer) {
         double lat = 0.0;
         List<String> tagValue = findInnerTagText("lat",xmlContainer);
@@ -86,6 +111,12 @@ public class ParserXML {
         return lat;
     }
 
+    /**
+     * Gets the Longitude
+     * 
+     * @param xmlContainer The XML-formatted string to analyze
+     * @return The Longitude
+     */
     private double getLon(String xmlContainer) {
         double lon = 0.0;
         List<String> tagValue = findInnerTagText("lon",xmlContainer);
@@ -94,6 +125,12 @@ public class ParserXML {
         return lon;
     }
 
+    /**
+     * Gets the ImageAddress
+     * 
+     * @param xmlContainer The XML-formatted string to analyze
+     * @return The ImageAddress
+     */
     private String getImageAddress(String xmlContainer) {
         String imageAddress = "";
         List<String> tagValue = findInnerTagText("imageAddress",xmlContainer);
@@ -105,7 +142,14 @@ public class ParserXML {
         return "no";
     }
     
-      private String getName(String xmlContainer) {
+    
+    /**
+     * Gets the Name
+     * 
+     * @param xmlContainer The XML-formatted string to analyze
+     * @return The Name
+     */
+    private String getName(String xmlContainer) {
         String name = "";
         List<String> tagValue = findInnerTagText("objectName",xmlContainer);
         if (tagValue.size()>0){
@@ -123,10 +167,6 @@ public class ParserXML {
         return null;
     }
 
-    /*<lat>0.0</lat>
-    <lon>0.0</lon>
-    <imageAddress>img/buoyage_1/BOYLAT_4_1_3_0_5_1.png</imageAddress>
-     */
     /**
      * Get the value of xmlFile
      *
@@ -145,6 +185,11 @@ public class ParserXML {
         this.xmlFile = xmlFile;
     }
     
+    /**
+     * Gets the command of the xmlFile given in constructor
+     * 
+     * @return Ths command if found, else, null
+     */
     public String getCmd() {
         String cmd = "";
 
@@ -157,6 +202,11 @@ public class ParserXML {
         return null;
     }
 
+    /**
+     * Gets the ARgeoDatas list (latitude, longitude, imageAddress, route name)
+     * 
+     * @return The ARgeoDatas list
+     */
     public List<ARgeoData> getARgeoDatas() {
         List<ARgeoData> argDatas = new ArrayList<>();
 

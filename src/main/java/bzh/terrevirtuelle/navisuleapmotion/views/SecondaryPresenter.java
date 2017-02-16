@@ -35,6 +35,9 @@ public class SecondaryPresenter {
     @FXML
     private View secondary;
 
+    /**
+     *
+     */
     public void initialize() {
         secondary.setShowTransitionFactory(BounceInRightTransition::new);
         
