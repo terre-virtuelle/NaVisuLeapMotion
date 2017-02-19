@@ -641,11 +641,11 @@ public class PrimaryPresenter {
         SimpleMenu gpsLogOn = new SimpleMenu("gpsLogOn.png", ais, "Enable GPS Log", this);
         SimpleMenu gpsLogOff = new SimpleMenu("gpsLogOff.png", ais, "Disable GPS Log", this);
         
-        SimpleMenu compassSub = new SimpleMenu("compass.png", compass, "Display Compass", this);
+        SimpleMenu compassSub = new SimpleMenu("compass.png", compass, "Compass", this);
         
-        SimpleMenu sonarOn = new SimpleMenu("sonarOn.png", bathyInstrument, "Enable Sonar", this);
+        SimpleMenu sonarOn = new SimpleMenu("sonarOn.png", bathyInstrument, "Sonar", this);
         
-        SimpleMenu clocks = new SimpleMenu("clocks.png", time, "Display Clocks", this);
+        SimpleMenu clocks = new SimpleMenu("clocks.png", time, "Clocks", this);
         
         ais.addSubMenu(back);
         ais.addSubMenu(aisRadarOn);
@@ -833,6 +833,12 @@ public class PrimaryPresenter {
                             openMenu();
                         }
                     } else {
+                        try {
+                            String request = String.format("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><arCommand><cmd>ActionMenu</cmd><arg>%s</arg></arCommand>",currMenu.getAction());
+                            WSC.ws_request(request);
+                        } catch (TimeLimitExceededException ex) {
+                            Logger.getLogger(PrimaryPresenter.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                         displayMessage(currMenu.getAction());
                     }
                 } else {

@@ -190,6 +190,17 @@ public class WSClient extends WebSocketClient {
         this.send(cmd);
         static_ARgeoDataArray = handleRepStaticData();
     }
+    
+    /**
+     * Sends a message to NaVisu server 
+     * 
+     * @param message message to send
+     * @throws TimeLimitExceededException Thrown if timed out
+     */
+    public void ws_request(String message) throws TimeLimitExceededException {
+        System.out.println("Sending: " + message);
+        this.send(message);
+    }
 
     /**
      * Gets the message list
